@@ -60,14 +60,11 @@ public class ConversionRuleCollectionManager {
     // ПОИСК ПО ID
 
     public ConversionRule getById(long id) {
-
         for (ConversionRule r : ruleCollection) {
-
             if (r.getId() == id) {
                 return r;
             }
         }
-
         return null;
     }
 
