@@ -185,19 +185,33 @@
 ## Структура проекта
 
     src
-     └─ main
-         └─ java
-             ├─ cli
-             │   └─ Main.java
-             ├─ model
-             │   ├─ Unit.java
-             │   ├─ ConversionRule.java
-             │   └─ ValueWithUnit.java
-             ├─ service
-             │   ├─ UnitCollectionManager.java
-             │   ├─ ConversionRuleCollectionManager.java
-             │   └─ ConversionService.java
-             └─ validation
-                 ├─ UnitValidator.java
-                 ├─ ConversionRuleValidator.java
-                 └─ ValueWithUnitValidator.java
+├── main
+│   ├── java
+│   │   ├── cli
+│   │   │   ├── Command.java
+│   │   │   ├── CommandContext.java
+│   │   │   ├── ConvAddCommand.java
+│   │   │   ├── ConvCheckCycleCommand.java
+│   │   │   ├── ConvConvertCommand.java
+│   │   │   ├── ConvDeleteCommand.java
+│   │   │   ├── ConvListCommand.java
+│   │   │   ├── ConvUpdateCommand.java
+│   │   │   ├── ExitCommand.java
+│   │   │   ├── HelpCommand.java
+│   │   │   ├── Main.java
+│   │   │   ├── UnitAddCommand.java
+│   │   │   ├── UnitListCommand.java
+│   │   │   ├── UnitShowCommand.java
+│   │   │   └── UnitUpdateCommand.java
+│   │   └── model
+│   │       ├── Unit.java
+│   │       ├── ConversionRule.java
+│   │       ├── ValueWithUnit.java
+│   │       └── service
+│   │           ├── UnitCollectionManager.java
+│   │           ├── ConversionRuleController.java
+│   │           ├── ConversionService.java
+│   │           └── validation
+│   │               ├── UnitValidator.java
+│   │               ├── ConversionRuleValidator.java
+│   │               └── ValueWithUnitValidator.java
