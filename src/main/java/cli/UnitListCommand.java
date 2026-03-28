@@ -1,6 +1,6 @@
 package cli;
 
-import main.java.model.Unit;
+import model.Unit;
 
 public class UnitListCommand extends Command {
     public UnitListCommand() { super("unit_list", "Список единиц измерения"); }

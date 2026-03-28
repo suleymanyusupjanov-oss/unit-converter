@@ -1,6 +1,6 @@
 package cli;
 
-import main.java.model.Unit;
+import model.Unit;
 
 public class UnitAddCommand extends Command {
     public UnitAddCommand() {

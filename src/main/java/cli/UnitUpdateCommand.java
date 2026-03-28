@@ -1,6 +1,6 @@
 package cli;
 
-import main.java.model.Unit;
+import model.Unit;
 import java.util.Arrays;
 
 public class UnitUpdateCommand extends Command {

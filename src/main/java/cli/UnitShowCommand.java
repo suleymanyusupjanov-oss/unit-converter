@@ -1,5 +1,5 @@
 package cli;
-import main.java.model.Unit;
+import model.Unit;
 
 public class UnitShowCommand extends Command {
     public UnitShowCommand() {

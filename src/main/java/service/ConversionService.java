@@ -1,9 +1,9 @@
-package main.java.service;
+package service;
 
-import main.java.model.ConversionRule;
-import main.java.model.ValueWithUnit;
-import main.java.validation.ValueWithUnitValidator;
-import main.java.validation.ConversionRuleValidator;
+import model.ConversionRule;
+import model.ValueWithUnit;
+import validation.ValueWithUnitValidator;
+import validation.ConversionRuleValidator;
 
 public class ConversionService {
 

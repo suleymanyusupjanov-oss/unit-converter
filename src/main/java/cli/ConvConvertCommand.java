@@ -1,6 +1,6 @@
 package cli;
 
-import main.java.model.ValueWithUnit;
+import model.ValueWithUnit;
 
 public class ConvConvertCommand extends Command {
     public ConvConvertCommand() {

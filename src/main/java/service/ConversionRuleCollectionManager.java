@@ -1,7 +1,7 @@
-package main.java.service;
+package service;
 
-import main.java.model.ConversionRule;
-import main.java.validation.ConversionRuleValidator;
+import model.ConversionRule;
+import validation.ConversionRuleValidator;
 
 import java.time.Instant;
 import java.util.ArrayList;

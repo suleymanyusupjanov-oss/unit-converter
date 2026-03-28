@@ -1,7 +1,7 @@
-package main.java.service;
+package service;
 
-import main.java.model.Unit;
-import main.java.validation.UnitValidator;
+import model.Unit;
+import validation.UnitValidator;
 
 import java.time.Instant;
 import java.util.ArrayList;

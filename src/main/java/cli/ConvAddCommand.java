@@ -1,6 +1,6 @@
 package cli;
 
-import main.java.model.ConversionRule;
+import model.ConversionRule;
 
 public class ConvAddCommand extends Command {
     public ConvAddCommand() {
