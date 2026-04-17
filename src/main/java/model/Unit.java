@@ -1,6 +1,7 @@
 package model;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 
 public final class Unit {
@@ -24,10 +25,16 @@ public final class Unit {
     // Когда обновляли. Программа обновляет автоматически.
     private Instant updatedAt;
 
+    // Связь Master-Detail: список правил для этой единицы измерения
+    private java.util.List<ConversionRule> rules = new java.util.ArrayList<>();
+
     //Конструктор
     public Unit(long id, Instant createdAt) {
         this.id = id;
         this.createdAt = createdAt;
+    }
+    public Unit() {
+        // Пустой конструктор специально для Jackson
     }
     //Геттеры
     public String getCode() {
@@ -50,6 +57,10 @@ public final class Unit {
         return ownerUsername;
     }
 
+    public List<ConversionRule> getRules() {
+        return rules;
+    }
+
     public Instant getUpdatedAt() {
         return updatedAt;
     }
@@ -70,6 +81,9 @@ public final class Unit {
         this.updatedAt = updatedAt;
     }
 
+    public void setRules(List<ConversionRule> rules) {
+        this.rules = rules;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -94,8 +108,5 @@ public final class Unit {
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
-    }
-    public Unit() {
-        // Пустой конструктор специально для Jackson
     }
 }

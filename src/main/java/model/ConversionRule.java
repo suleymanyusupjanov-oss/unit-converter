@@ -30,6 +30,9 @@ public final class ConversionRule {
         this.createdAt = createdAt;
         this.id = id;
     }
+    public ConversionRule() {
+        // Пустой конструктор специально для Jackson
+    }
 
     //Геттеры
     public Instant getCreatedAt() {
@@ -105,7 +108,5 @@ public final class ConversionRule {
                 ", updatedAt=" + updatedAt +
                 '}';
     }
-    public ConversionRule() {
-        // Пустой конструктор специально для Jackson
-    }
+
 }

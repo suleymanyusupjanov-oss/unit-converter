@@ -136,4 +136,17 @@ public class UnitCollectionManager {
         // если объект не найден
         return false;
     }
+
+    // СОХРАНЕНИЕ В ФАЙЛ
+    // Передает текущую коллекцию в XmlStorage для записи на диск
+    public void saveToFile(String path) throws Exception {
+
+        // Создаем нашего помощника по работе с XML
+        storage.XmlStorage xmlStorage = new storage.XmlStorage();
+
+        // Отдаем ему команду сохранить нашу коллекцию по указанному пути
+        xmlStorage.save(this.unitCollection, path);
+
+        System.out.println("Данные успешно сохранены в файл: " + path);
+    }
 }
