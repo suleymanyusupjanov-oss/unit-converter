@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public final class ConversionRule {
     // Уникальный номер правила. Программа назначает сама.
-    private final long id;
+    private long id;
 
     // Из какой единицы (код, например "mg/L"). Нельзя пустое.
     private String fromUnitCode;
@@ -20,7 +20,7 @@ public final class ConversionRule {
     private String ownerUsername;
 
     // Когда создано. Программа ставит автоматически.
-    private final Instant createdAt;
+    private  Instant createdAt;
 
     // Когда обновляли. Программа обновляет автоматически.
     private Instant updatedAt;
@@ -104,5 +104,8 @@ public final class ConversionRule {
                 ", ownerUsername='" + ownerUsername + '\'' +
                 ", updatedAt=" + updatedAt +
                 '}';
+    }
+    public ConversionRule() {
+        // Пустой конструктор специально для Jackson
     }
 }

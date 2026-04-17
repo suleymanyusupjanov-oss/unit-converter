@@ -6,7 +6,7 @@ import java.util.Objects;
 public final class Unit {
 
     // Уникальный номер единицы. Программа назначает сама.
-    private final long id;
+    private long id;
 
     // Короткий код единицы (например "mg/L"). Нельзя пустое. До 16 символов.
     private String code;
@@ -19,7 +19,7 @@ public final class Unit {
     private String ownerUsername;
 
     // Когда создано. Программа ставит автоматически.
-    private final Instant createdAt;
+    private Instant createdAt;
 
     // Когда обновляли. Программа обновляет автоматически.
     private Instant updatedAt;
@@ -94,5 +94,8 @@ public final class Unit {
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
+    }
+    public Unit() {
+        // Пустой конструктор специально для Jackson
     }
 }
