@@ -1,8 +1,8 @@
 package service;
-
+import model.ConversionRule;
 import model.Unit;
 import validation.UnitValidator;
-
+import validation.ConversionRuleValidator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -148,5 +148,43 @@ public class UnitCollectionManager {
         xmlStorage.save(this.unitCollection, path);
 
         System.out.println("Данные успешно сохранены в файл: " + path);
+    }
+
+    // ЗАГРУЗКА ИЗ ФАЙЛА
+    public void loadFromFile(String path) {
+        try {
+            // 1. Создаем помощника
+            storage.XmlStorage xmlStorage = new storage.XmlStorage();
+
+            // 2. Читаем данные во ВРЕМЕННЫЙ список
+            List<Unit> loadedUnits = xmlStorage.load(path);
+
+            // 3. ВАЛИДАЦИЯ (Проверка)
+            // Проверяем каждую загруженную единицу. Используем готовые валидаторы
+            for (Unit unit : loadedUnits) {
+                validation.UnitValidator.validateCode(unit.getCode());
+                validation.UnitValidator.validateName(unit.getName());
+                UnitValidator.validateOwnerUsername(unit.getOwnerUsername());
+
+                // Проверяем каждое правило конвертации внутри этой единицы
+                for (ConversionRule rule : unit.getRules()) {
+                    ConversionRuleValidator.validateFromUnitCode(rule.getFromUnitCode());
+                    ConversionRuleValidator.validateToUnitCode(rule.getToUnitCode());
+                    ConversionRuleValidator.validateFactor(rule.getFactor());
+                    ConversionRuleValidator.validateOwnerUsername(rule.getOwnerUsername());
+
+                }
+
+            }
+            // Если мы дошли до этого момента, значит ни один валидатор не выкинул ошибку.
+            // Теперь можно безопасно заменить старую коллекцию на новую.
+            this.unitCollection.clear();
+            this.unitCollection.addAll(loadedUnits);
+
+            System.out.println("Данные успешно загружены! Найдено единиц: " + loadedUnits.size());
+        } catch (Exception e) {
+            // Если в файле был мусор или ошибка формата, выводим понятное сообщение
+            System.out.println("Ошибка при загрузке данных: " + e.getMessage());
+        }
     }
 }
