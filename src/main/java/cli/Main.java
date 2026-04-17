@@ -32,7 +32,8 @@ public class Main {
         register(commands, new UnitUpdateCommand());
         register(commands, new ConvUpdateCommand());
         register(commands, new ConvCheckCycleCommand());
-
+        register(commands, new SaveCommand());
+        register(commands, new LoadCommand());
         System.out.println("Система конвертации единиц запущена.");
         System.out.println("Введите help для просмотра списка команд.");
 
