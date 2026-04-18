@@ -23,6 +23,7 @@ public class MainController {
     @FXML private TableView<ConversionRule> rulesTableView;
     @FXML private Button convertButton;
     @FXML private Button addUnitButton;
+    @FXML private Button addRuleButton; // Наша новая кнопка
     @FXML private Button refreshButton;
 
     private UnitCollectionManager unitManager;
@@ -31,20 +32,15 @@ public class MainController {
 
     @FXML
     public void initialize() {
-        // Настройка левого списка (Master)
+        // Настройка списков
         unitsListView.setCellFactory(param -> new ListCell<Unit>() {
             @Override
             protected void updateItem(Unit item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.getCode() + " - " + item.getName());
-                }
+                setText(empty  item == null ? null : item.getCode() + " - " + item.getName());
             }
         });
 
-        // Настройка правой таблицы (Detail)
         TableColumn<ConversionRule, String> toUnitCol = new TableColumn<>("В какую единицу (To)");
         toUnitCol.setCellValueFactory(new PropertyValueFactory<>("toUnitCode"));
         toUnitCol.setPrefWidth(150);
@@ -55,74 +51,71 @@ public class MainController {
 
         rulesTableView.getColumns().addAll(toUnitCol, factorCol);
 
-        // Связь при клике (Master -> Detail)
-        unitsListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                ObservableList<ConversionRule> rules = FXCollections.observableArrayList(newValue.getRules());
-                rulesTableView.setItems(rules);
+        // Связь при клике
+        unitsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                rulesTableView.setItems(FXCollections.observableArrayList(newVal.getRules()));
             } else {
                 rulesTableView.getItems().clear();
             }
         });
 
-        // Кнопка обновления (Исправлен вызов showAlert)
-        refreshButton.setOnAction(event -> {
+        refreshButton.setOnAction(e -> {
             refreshData();
-            showAlert("Успех", "Данные загружены из памяти/XML!", Alert.AlertType.INFORMATION);
+            showAlert("Успех", "Данные загружены!", Alert.AlertType.INFORMATION);
         });
 
-        // Кнопка добавления единицы
-        addUnitButton.setOnAction(event -> {
+        addUnitButton.setOnAction(e -> {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/AddUnitWindow.fxml"));
                 Parent root = loader.load();
-
-                AddUnitController addController = loader.getController();
-                addController.setUnitManager(unitManager, this::refreshData);
-
+                AddUnitController controller = loader.getController();
+                controller.setUnitManager(unitManager, this::refreshData);
                 Stage stage = new Stage();
-                stage.setTitle("Добавить единицу измерения");
                 stage.setScene(new Scene(root));
                 stage.initModality(Modality.APPLICATION_MODAL);
                 stage.showAndWait();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                // ТА САМАЯ ОШИБКА СО СКРИНШОТА ИСПРАВЛЕНА:
-                showAlert("Ошибка", "Не удалось открыть окно добавления: " + e.getMessage(), Alert.AlertType.ERROR);
-            }
+            } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        // === ОЖИВЛЯЕМ КНОПКУ КОНВЕРТАЦИИ ===
-        convertButton.setOnAction(event -> {
-            Unit selectedUnit = unitsListView.getSelectionModel().getSelectedItem();
-            ConversionRule selectedRule = rulesTableView.getSelectionModel().getSelectedItem();
-
-            if (selectedUnit == null || selectedRule == null) {
-                showAlert("Внимание", "Сначала выберите единицу слева и правило конвертации справа!", Alert.AlertType.WARNING);
+        // === ОЖИВЛЯЕМ КНОПКУ ДОБАВЛЕНИЯ ПРАВИЛА ===
+        addRuleButton.setOnAction(e -> {
+            Unit selected = unitsListView.getSelectionModel().getSelectedItem();
+            if (selected == null) {
+                showAlert("Внимание", "Сначала выберите единицу слева!", Alert.AlertType.WARNING);
                 return;
             }
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/AddRuleWindow.fxml"));
+                Parent root = loader.load();
+                AddRuleController controller = loader.getController();
+                controller.setUnit(selected, () -> {
+                    rulesTableView.setItems(FXCollections.observableArrayList(selected.getRules()));
+                });
+                Stage stage = new Stage();
+                stage.setTitle("Добавить правило");
+                stage.setScene(new Scene(root));
+                stage.initModality(Modality.APPLICATION_MODAL);
+                stage.showAndWait();
+            } catch (Exception ex) { ex.printStackTrace(); }
+        });
 
+        convertButton.setOnAction(e -> {
+            Unit unit = unitsListView.getSelectionModel().getSelectedItem();
+            ConversionRule rule = rulesTableView.getSelectionModel().getSelectedItem();
+            if (unit == null  rule == null) {
+                showAlert("Внимание", "Выберите единицу и правило!", Alert.AlertType.WARNING);
+                return;
+            }
             TextInputDialog dialog = new TextInputDialog("1.0");
             dialog.setTitle("Конвертация");
-            dialog.setHeaderText("Перевод: " + selectedUnit.getCode() + " ➔ " + selectedRule.getToUnitCode());
-            dialog.setContentText("Введите число для конвертации:");
-
-            java.util.Optional<String> result = dialog.showAndWait();
-
-            result.ifPresent(inputValue -> {
+            dialog.setHeaderText("Перевод: " + unit.getCode() + " ➔ " + rule.getToUnitCode());
+            dialog.showAndWait().ifPresent(input -> {
                 try {
-                    double value = Double.parseDouble(inputValue.replace(",", "."));
-                    double convertedValue = value * selectedRule.getFactor();
-
-                    String resultMessage = String.format("%s %s = %s %s",
-                            value, selectedUnit.getCode(),
-                            convertedValue, selectedRule.getToUnitCode());
-
-                    showAlert("Результат", resultMessage, Alert.AlertType.INFORMATION);
-
-                } catch (NumberFormatException e) {
-                    showAlert("Ошибка ввода", "Пожалуйста, введите корректное число!\nВы ввели: " + inputValue, Alert.AlertType.ERROR);
+                    double val = Double.parseDouble(input.replace(",", "."));
+                    showAlert("Результат", String.format("%s %s = %s %s", val, unit.getCode(), val * rule.getFactor(), rule.getToUnitCode()), Alert.AlertType.INFORMATION);
+                } catch (Exception ex) {
+                    showAlert("Ошибка", "Введите корректное число!", Alert.AlertType.ERROR);
                 }
             });
         });
@@ -137,17 +130,12 @@ public class MainController {
 
     private void refreshData() {
         if (unitManager != null) {
-            ObservableList<Unit> realUnits = FXCollections.observableArrayList(unitManager.getUnits());
-            unitsListView.setItems(realUnits);
+            unitsListView.setItems(FXCollections.observableArrayList(unitManager.getUnits()));
         }
     }
 
-    // Универсальный метод для показа окон (принимает 3 параметра)
     private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Alert alert = new Alert(type); alert.setTitle(title); alert.setHeaderText(null);
+        alert.setContentText(message); alert.showAndWait();
     }
 }
