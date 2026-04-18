@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="15.0" prefWidth="300.0" prefHeight="250.0"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ui.AddUnitController">
+
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+
+    <Label text="Добавление новой единицы" style="-fx-font-weight: bold; -fx-font-size: 16px;"/>
+
+    <VBox spacing="5.0">
+        <Label text="Код (например: kg):" />
+        <TextField fx:id="codeField" promptText="Введите код..." />
+    </VBox>
+
+    <VBox spacing="5.0">
+        <Label text="Название (например: Kilogram):" />
+        <TextField fx:id="nameField" promptText="Введите название..." />
+    </VBox>
+
+    <VBox VBox.vgrow="ALWAYS" />
+
+    <Button fx:id="saveButton" text="Сохранить и Добавить" defaultButton="true" prefWidth="200.0"/>
+
+</VBox>

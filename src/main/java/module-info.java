@@ -1,15 +1,19 @@
 module unit.converter {
-    // Подключаем графику JavaFX
+    // 1. Подключаем графику JavaFX
     requires javafx.controls;
     requires javafx.fxml;
 
-    // requires java.xml;
+    // 2. Разрешения для работы с XML (Jackson с 3 этапа)
+    requires com.fasterxml.jackson.annotation;
+    requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.dataformat.xml;
+    requires com.fasterxml.jackson.core;
 
-    // Разрешаем JavaFX работать с нашим новым пакетом ui
+    // 3. Разрешаем JavaFX работать с нашим новым пакетом ui
     opens ui to javafx.fxml;
     exports ui;
 
-    // Разрешаем JavaFX видеть твои классы из пакета model (нужно для таблиц)
-    opens model to javafx.base;
+    //4. Разрешаем таблицам на экране И библиотеке Jackson читать данные из model
+    opens model to javafx.base, com.fasterxml.jackson.databind;
     exports model;
 }
