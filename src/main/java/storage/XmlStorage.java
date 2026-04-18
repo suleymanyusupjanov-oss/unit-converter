@@ -1,37 +1,40 @@
 package storage;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import model.DataWrapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import model.Unit;
-import java.util.List;
+
 import java.io.File;
+import java.util.List;
 
 public class XmlStorage {
-    public void save(List<Unit> units, String path) throws Exception {
-// 1. Создаем нашего "переводчика" для XML
-        XmlMapper xmlMapper = new XmlMapper();
 
-        // Эта настройка делает текст красивым: добавляет пробелы и переносы строк.
-        // Без нее весь XML запишется в одну бесконечную строку.
-        xmlMapper.enable(SerializationFeature.INDENT_OUTPUT);
+    private XmlMapper mapper;
 
-        // 2. Упаковываем наш список в "главную коробку"
-        DataWrapper wrapper = new DataWrapper(units);
+    public XmlStorage() {
+        mapper = new XmlMapper();
 
-        // 3. Даем команду переводчику: запиши коробку в этот файл
-        xmlMapper.writeValue(new File(path), wrapper);
+        // === ЛЕКАРСТВО ОТ ОШИБКИ java.time.Instant ===
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-    //полная противоположность методу save
+    public void save(List<Unit> units, String path) throws Exception {
+        // Сохраняем список напрямую (без оберток, чтобы не сломать загрузку)
+        mapper.writeValue(new File(path), units);
+    }
+
     public List<Unit> load(String path) throws Exception {
-        // 1. Создаем нашего переводчика для XML
-        XmlMapper xmlMapper = new XmlMapper();
+        File file = new File(path);
 
-        // 3. Читаем текст из файла и собираем его обратно в нашу "Главную коробку"
-        DataWrapper wrapper = xmlMapper.readValue(new File(path), DataWrapper.class);
+        // Если файла нет или он пустой - возвращаем null, чтобы не сломать программу
+        if (!file.exists() || file.length() == 0) {
+            return null;
+        }
 
-        // 4. Достаем из коробки готовый список единиц измерения и возвращаем его
-        return wrapper.getUnits();
+        // Загружаем список из XML
+        return mapper.readValue(file, new TypeReference<List<Unit>>() {});
     }
 }

@@ -37,7 +37,7 @@ public class MainController {
             @Override
             protected void updateItem(Unit item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty  item == null ? null : item.getCode() + " - " + item.getName());
+                setText(empty || item == null ? null : item.getCode() + " - " + item.getName());
             }
         });
 
@@ -103,7 +103,7 @@ public class MainController {
         convertButton.setOnAction(e -> {
             Unit unit = unitsListView.getSelectionModel().getSelectedItem();
             ConversionRule rule = rulesTableView.getSelectionModel().getSelectedItem();
-            if (unit == null  rule == null) {
+            if (unit == null || rule == null) {
                 showAlert("Внимание", "Выберите единицу и правило!", Alert.AlertType.WARNING);
                 return;
             }
@@ -119,6 +119,37 @@ public class MainController {
                 }
             });
         });
+        // === КОНТЕКСТНОЕ МЕНЮ (УДАЛЕНИЕ ЕДИНИЦЫ) ===
+        ContextMenu unitMenu = new ContextMenu();
+        MenuItem deleteUnitItem = new MenuItem("🗑 Удалить единицу");
+        deleteUnitItem.setOnAction(event -> {
+            Unit selected = unitsListView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                unitManager.remove(selected.getId()); // Твой родной метод из UnitCollectionManager
+                refreshData(); // Обновляем список на экране
+                rulesTableView.getItems().clear(); // Очищаем правую таблицу
+            }
+        });
+        unitMenu.getItems().add(deleteUnitItem);
+        unitsListView.setContextMenu(unitMenu);
+
+
+        // === КОНТЕКСТНОЕ МЕНЮ (УДАЛЕНИЕ ПРАВИЛА) ===
+        ContextMenu ruleMenu = new ContextMenu();
+        MenuItem deleteRuleItem = new MenuItem("🗑 Удалить правило");
+        deleteRuleItem.setOnAction(event -> {
+            Unit selectedUnit = unitsListView.getSelectionModel().getSelectedItem();
+            ConversionRule selectedRule = rulesTableView.getSelectionModel().getSelectedItem();
+
+            if (selectedUnit != null && selectedRule != null) {
+                // Удаляем правило из списка самой единицы
+                selectedUnit.getRules().remove(selectedRule);
+                // Обновляем табличку на экране
+                rulesTableView.getItems().remove(selectedRule);
+            }
+        });
+        ruleMenu.getItems().add(deleteRuleItem);
+        rulesTableView.setContextMenu(ruleMenu);
     }
 
     public void setServices(UnitCollectionManager um, ConversionRuleCollectionManager rm, ConversionService cs) {

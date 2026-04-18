@@ -10,7 +10,7 @@
 значений между единицами - обновлять и удалять правила
 
 Проект реализован на: - Java 17 - Maven - архитектуре с разделением на
-пакеты (model, service, cli, validation)
+пакеты (model, service, cli, validation, ui, storage)
 
 ------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@
 
 Запуск выполняется из терминала:
 
-   java -cp target/unit-converter-1.0.jar main.java.cli.Main
+java -cp target/unit-converter-1.0.jar main.java.cli.Main
 
 После запуска появится приглашение для ввода команд.
 
@@ -185,33 +185,48 @@
 ## Структура проекта
 
     src
-├── main
-│   ├── java
-│   │   ├── cli
-│   │   │   ├── Command.java
-│   │   │   ├── CommandContext.java
-│   │   │   ├── ConvAddCommand.java
-│   │   │   ├── ConvCheckCycleCommand.java
-│   │   │   ├── ConvConvertCommand.java
-│   │   │   ├── ConvDeleteCommand.java
-│   │   │   ├── ConvListCommand.java
-│   │   │   ├── ConvUpdateCommand.java
-│   │   │   ├── ExitCommand.java
-│   │   │   ├── HelpCommand.java
-│   │   │   ├── Main.java
-│   │   │   ├── UnitAddCommand.java
-│   │   │   ├── UnitListCommand.java
-│   │   │   ├── UnitShowCommand.java
-│   │   │   └── UnitUpdateCommand.java
-│   │   └── model
-│   │       ├── Unit.java
-│   │       ├── ConversionRule.java
-│   │       ├── ValueWithUnit.java
-│   │       └── service
-│   │           ├── UnitCollectionManager.java
-│   │           ├── ConversionRuleController.java
-│   │           ├── ConversionService.java
-│   │           └── validation
-│   │               ├── UnitValidator.java
-│   │               ├── ConversionRuleValidator.java
-│   │               └── ValueWithUnitValidator.java
+    ├── main
+    │   ├── java
+    │   │   ├── cli
+    │   │   │   ├── Command.java
+    │   │   │   ├── CommandContext.java
+    │   │   │   ├── ConvAddCommand.java
+    │   │   │   ├── ConvCheckCycleCommand.java
+    │   │   │   ├── ConvConvertCommand.java
+    │   │   │   ├── ConvDeleteCommand.java
+    │   │   │   ├── ConvListCommand.java
+    │   │   │   ├── ConvUpdateCommand.java
+    │   │   │   ├── ExitCommand.java
+    │   │   │   ├── HelpCommand.java
+    │   │   │   ├── LoadCommand.java
+    │   │   │   ├── Main.java
+    │   │   │   ├── SaveCommand.java
+    │   │   │   ├── UnitAddCommand.java
+    │   │   │   ├── UnitListCommand.java
+    │   │   │   ├── UnitShowCommand.java
+    │   │   │   └── UnitUpdateCommand.java
+    │   │   ├── model
+    │   │   │   ├── ConversionRule.java
+    │   │   │   ├── DataWrapper.java
+    │   │   │   ├── Unit.java
+    │   │   │   └── ValueWithUnit.java
+    │   │   ├── service
+    │   │   │   ├── ConversionRuleCollectionManager.java
+    │   │   │   ├── ConversionService.java
+    │   │   │   └── UnitCollectionManager.java
+    │   │   ├── storage
+    │   │   │   └── XmlStorage.java
+    │   │   ├── ui
+    │   │   │   ├── AddRuleController.java
+    │   │   │   ├── AddUnitController.java
+    │   │   │   ├── MainApp.java
+    │   │   │   └── MainController.java
+    │   │   └── validation
+    │   │       ├── ConversionRuleValidator.java
+    │   │       ├── UnitValidator.java
+    │   │       └── ValueWithUnitValidator.java
+    │   └── resources
+    │       ├── AddRuleWindow.fxml
+    │       ├── AddUnitWindow.fxml
+    │       └── MainWindow.fxml
+    └── pom.xml

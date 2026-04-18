@@ -8,6 +8,7 @@ module unit.converter {
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.dataformat.xml;
     requires com.fasterxml.jackson.core;
+    requires com.fasterxml.jackson.datatype.jsr310;
 
     // 3. Разрешаем JavaFX работать с нашим новым пакетом ui
     opens ui to javafx.fxml;

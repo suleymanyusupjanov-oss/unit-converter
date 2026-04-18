@@ -2,40 +2,58 @@ package ui;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import service.UnitCollectionManager;
 import service.ConversionRuleCollectionManager;
 import service.ConversionService;
+import service.UnitCollectionManager;
 
 public class MainApp extends Application {
 
+    private UnitCollectionManager unitManager; // Вынесли наверх, чтобы был доступен при закрытии
+
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Ищем наш "чертеж" окна в папке ресурсов
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/MainWindow.fxml"));
-
-        // Задаем размер окна 800 на 600
-        Scene scene = new Scene(loader.load(), 800, 600);
-
-        // 1. Достаем контроллер из загруженного окна
+        Parent root = loader.load();
         MainController controller = loader.getController();
 
-        // 2. Создаем реальные сервисы
-        UnitCollectionManager unitManager = new UnitCollectionManager();
+        // 1. Создаем сервисы
+        unitManager = new UnitCollectionManager();
         ConversionRuleCollectionManager ruleManager = new ConversionRuleCollectionManager();
         ConversionService conversionService = new ConversionService(unitManager, ruleManager);
 
-        // 3. Передаем эти сервисы в окно
+        // === МАГИЯ ЗАГРУЗКИ ===
+        // Пытаемся загрузить старые данные при запуске программы
+        try {
+            unitManager.loadFromFile("data.xml");
+            System.out.println("Данные успешно загружены из файла.");
+        } catch (Exception e) {
+            System.out.println("Файл данных не найден или пуст. Начинаем с чистого листа.");
+        }
+
+        // 2. Передаем сервисы (уже с данными!) в контроллер
         controller.setServices(unitManager, ruleManager, conversionService);
 
-        // Настраиваем заголовок
-        primaryStage.setTitle("Unit Converter - Этап 4");
-        primaryStage.setScene(scene);
+        // === МАГИЯ СОХРАНЕНИЯ ===
+        // Говорим программе: "Когда пользователь нажмет на крестик, сохрани всё в файл!"
+        primaryStage.setOnCloseRequest(event -> {
+            try {
+                unitManager.saveToFile("data.xml");
+                System.out.println("Данные успешно сохранены перед выходом.");
+            } catch (Exception e) {
+                System.out.println("Ошибка при сохранении данных: " + e.getMessage());
+            }
+        });
+
+        // 3. Настраиваем и показываем окно
+        primaryStage.setTitle("Unit Converter - Финал");
+        primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
+
     public static void main(String[] args) {
-        launch(args); // Команда на запуск графики
+        launch(args);
     }
 }

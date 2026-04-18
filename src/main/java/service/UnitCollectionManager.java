@@ -153,38 +153,49 @@ public class UnitCollectionManager {
     // ЗАГРУЗКА ИЗ ФАЙЛА
     public void loadFromFile(String path) {
         try {
-            // 1. Создаем помощника
             storage.XmlStorage xmlStorage = new storage.XmlStorage();
-
-            // 2. Читаем данные во ВРЕМЕННЫЙ список
             List<Unit> loadedUnits = xmlStorage.load(path);
 
-            // 3. ВАЛИДАЦИЯ (Проверка)
-            // Проверяем каждую загруженную единицу. Используем готовые валидаторы
+            // Если из файла пришла пустота - просто прерываемся, чтобы не затереть то, что есть
+            if (loadedUnits == null) {
+                System.out.println("Файл пуст или вернул null.");
+                return;
+            }
+
+            // Твоя валидация (оставляем как было)
             for (Unit unit : loadedUnits) {
                 validation.UnitValidator.validateCode(unit.getCode());
                 validation.UnitValidator.validateName(unit.getName());
-                UnitValidator.validateOwnerUsername(unit.getOwnerUsername());
-
-                // Проверяем каждое правило конвертации внутри этой единицы
-                for (ConversionRule rule : unit.getRules()) {
-                    ConversionRuleValidator.validateFromUnitCode(rule.getFromUnitCode());
-                    ConversionRuleValidator.validateToUnitCode(rule.getToUnitCode());
-                    ConversionRuleValidator.validateFactor(rule.getFactor());
-                    ConversionRuleValidator.validateOwnerUsername(rule.getOwnerUsername());
-
+                validation.UnitValidator.validateOwnerUsername(unit.getOwnerUsername());
+                for (model.ConversionRule rule : unit.getRules()) {
+                    validation.ConversionRuleValidator.validateFromUnitCode(rule.getFromUnitCode());
+                    validation.ConversionRuleValidator.validateToUnitCode(rule.getToUnitCode());
+                    validation.ConversionRuleValidator.validateFactor(rule.getFactor());
+                    validation.ConversionRuleValidator.validateOwnerUsername(rule.getOwnerUsername());
                 }
-
             }
-            // Если мы дошли до этого момента, значит ни один валидатор не выкинул ошибку.
-            // Теперь можно безопасно заменить старую коллекцию на новую.
+
+            // Если дошли сюда — данные 100% валидны. Заменяем коллекцию.
             this.unitCollection.clear();
             this.unitCollection.addAll(loadedUnits);
 
-            System.out.println("Данные успешно загружены! Найдено единиц: " + loadedUnits.size());
+            // === БЕЗОПАСНЫЙ СДВИГ ID ===
+            // Ищем самый большой ID среди загруженных файлов
+            long maxId = 0;
+            for (Unit u : loadedUnits) {
+                if (u.getId() > maxId) {
+                    maxId = u.getId();
+                }
+            }
+            // Ставим счетчик на 1 больше максимального
+            this.nextId = maxId + 1;
+
+            System.out.println("Успех! Загружено единиц: " + loadedUnits.size() + ". Следующий свободный ID: " + nextId);
+
         } catch (Exception e) {
-            // Если в файле был мусор или ошибка формата, выводим понятное сообщение
-            System.out.println("Ошибка при загрузке данных: " + e.getMessage());
+            // ТЕПЕРЬ ОШИБКА БУДЕТ КРАСНОЙ И ПОНЯТНОЙ В КОНСОЛИ
+            System.err.println("КРИТИЧЕСКАЯ ОШИБКА ЗАГРУЗКИ ИЗ ФАЙЛА:");
+            e.printStackTrace();
         }
     }
 }
