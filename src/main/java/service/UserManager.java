@@ -1,6 +1,7 @@
 package service;
 
 import model.User;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,5 +13,19 @@ public class UserManager {
 
     public List<User> getUsers() {
         return users;
+    }
+
+    public User register(String login, String password) {
+        if (login == null || login.isBlank())
+            throw new IllegalArgumentException("Логин не может быть пустым");
+        if (password == null || password.isBlank())
+            throw new IllegalArgumentException("Пароль не может быть пустым");
+        for (User u : users) {
+            if (u.getLogin().equals(login))
+                throw new IllegalArgumentException("Пользователь с таким логином уже существует");
+        }
+        User user = new User(nextId++, login, User.hashPassword(password), Instant.now());
+        users.add(user);
+        return user;
     }
 }
