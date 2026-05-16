@@ -25,13 +25,12 @@ public class ConversionRuleCollectionManager {
 
     // СОЗДАНИЕ ПРАВИЛА
 
-    public ConversionRule createRule(String fromUnitCode, String toUnitCode, double factor, String ownerUsername) {
+    public ConversionRule createRule(String fromUnitCode, String toUnitCode, double factor, long ownerId) {
 
         // ВАЛИДАЦИЯ данных
         ConversionRuleValidator.validateFromUnitCode(fromUnitCode);
         ConversionRuleValidator.validateToUnitCode(toUnitCode);
         ConversionRuleValidator.validateFactor(factor);
-        ConversionRuleValidator.validateOwnerUsername(ownerUsername);
 
         ConversionRule rule = new ConversionRule(generateId(), Instant.now());
 
@@ -39,7 +38,7 @@ public class ConversionRuleCollectionManager {
         rule.setFromUnitCode(fromUnitCode);
         rule.setToUnitCode(toUnitCode);
         rule.setFactor(factor);
-        rule.setOwnerUsername(ownerUsername);
+        rule.setOwnerId(ownerId);
 
         // время последнего изменения
         rule.setUpdatedAt(Instant.now());
