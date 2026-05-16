@@ -20,7 +20,7 @@ public class ConvAddCommand extends Command {
 
         try {
             double factor = Double.parseDouble(factorStr);
-            ConversionRule rule = context.ruleManager().createRule(fromCode, toCode, factor, "SYSTEM");
+            ConversionRule rule = context.ruleManager().createRule(fromCode, toCode, factor, 0L);
             System.out.println("OK rule_id=" + rule.getId());
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Коэффициент должен быть числом.");
