@@ -70,6 +70,16 @@ public class MainApp extends Application {
 
         primaryStage.setTitle("Unit Converter Pro — " + userManager.getCurrentUser().getLogin());
         primaryStage.setScene(new Scene(root));
+
+        // Авто-сохранение данных при закрытии окна
+        primaryStage.setOnCloseRequest(e -> {
+            try {
+                unitManager.saveToFile(DATA_FILE);
+            } catch (Exception ex) {
+                System.err.println("Не удалось сохранить данные: " + ex.getMessage());
+            }
+        });
+
         primaryStage.show();
     }
 
