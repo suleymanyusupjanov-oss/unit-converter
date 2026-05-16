@@ -74,7 +74,7 @@ public class MainController {
         // СОХРАНЕНИЕ ЧЕРЕЗ ОКНО
         saveFileButton.setOnAction(e -> {
             FileChooser chooser = new FileChooser();
-            chooser.setInitialFileName("my_units.xml");
+            chooser.setInitialFileName("data.xml");
             File file = chooser.showSaveDialog(saveFileButton.getScene().getWindow());
             if (file != null) {
                 try {
