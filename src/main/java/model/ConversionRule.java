@@ -16,8 +16,8 @@ public final class ConversionRule {
     // Коэффициент: result = value * factor. Должен быть > 0
     private double factor;
 
-// Кто создал правило (логин). На ранних этапах можно "SYSTEM".
-    private String ownerUsername;
+    // ID владельца (вариант 2: хранится числом, ссылается на User.id)
+    private long ownerId;
 
     // Когда создано. Программа ставит автоматически.
     private  Instant createdAt;
@@ -51,8 +51,8 @@ public final class ConversionRule {
         return id;
     }
 
-    public String getOwnerUsername() {
-        return ownerUsername;
+    public long getOwnerId() {
+        return ownerId;
     }
 
     public String getToUnitCode() {
@@ -72,8 +72,8 @@ public final class ConversionRule {
         this.fromUnitCode = fromUnitCode;
     }
 
-    public void setOwnerUsername(String ownerUsername) {
-        this.ownerUsername = ownerUsername;
+    public void setOwnerId(long ownerId) {
+        this.ownerId = ownerId;
     }
 
     public void setToUnitCode(String toUnitCode) {
@@ -88,12 +88,12 @@ public final class ConversionRule {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         ConversionRule that = (ConversionRule) o;
-        return id == that.id && Double.compare(factor, that.factor) == 0 && Objects.equals(fromUnitCode, that.fromUnitCode) && Objects.equals(toUnitCode, that.toUnitCode) && Objects.equals(ownerUsername, that.ownerUsername) && Objects.equals(createdAt, that.createdAt) && Objects.equals(updatedAt, that.updatedAt);
+        return id == that.id && ownerId == that.ownerId && Double.compare(factor, that.factor) == 0 && Objects.equals(fromUnitCode, that.fromUnitCode) && Objects.equals(toUnitCode, that.toUnitCode) && Objects.equals(createdAt, that.createdAt) && Objects.equals(updatedAt, that.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, fromUnitCode, toUnitCode, factor, ownerUsername, createdAt, updatedAt);
+        return Objects.hash(id, fromUnitCode, toUnitCode, factor, ownerId, createdAt, updatedAt);
     }
 
     @Override
@@ -104,7 +104,7 @@ public final class ConversionRule {
                 ", fromUnitCode='" + fromUnitCode + '\'' +
                 ", toUnitCode='" + toUnitCode + '\'' +
                 ", factor=" + factor +
-                ", ownerUsername='" + ownerUsername + '\'' +
+                ", ownerId=" + ownerId +
                 ", updatedAt=" + updatedAt +
                 '}';
     }
