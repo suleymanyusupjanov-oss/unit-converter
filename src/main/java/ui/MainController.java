@@ -143,7 +143,7 @@ public class MainController {
             FXMLLoader l = new FXMLLoader(getClass().getResource(path));
             Stage s = new Stage();
             s.setScene(new Scene(l.load()));
-            if (path.contains("AddUnit")) ((AddUnitController)l.getController()).setUnitManager(unitManager, this::refreshData);
+            if (path.contains("AddUnit")) ((AddUnitController)l.getController()).setUnitManager(unitManager, userManager, this::refreshData);
             s.initModality(Modality.APPLICATION_MODAL);
             s.showAndWait();
         } catch (Exception e) { e.printStackTrace(); }
