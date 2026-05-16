@@ -120,6 +120,20 @@ public class MainController {
             refreshData();
         });
         unitsTableView.setContextMenu(new ContextMenu(delUnit));
+
+        MenuItem delRule = new MenuItem("Удалить");
+        delRule.setOnAction(e -> {
+            ConversionRule r = rulesTableView.getSelectionModel().getSelectedItem();
+            Unit u = unitsTableView.getSelectionModel().getSelectedItem();
+            if (r == null || u == null) return;
+            if (r.getOwnerId() != userManager.getCurrentUser().getId()) {
+                showAlert("Нет прав", "Ошибка: у вас нет прав на удаление этого правила", Alert.AlertType.ERROR);
+                return;
+            }
+            u.getRules().remove(r);
+            rulesTableView.setItems(FXCollections.observableArrayList(u.getRules()));
+        });
+        rulesTableView.setContextMenu(new ContextMenu(delRule));
     }
 
     private void handleConversion() {
@@ -172,7 +186,7 @@ public class MainController {
             FXMLLoader l = new FXMLLoader(getClass().getResource("/AddRuleWindow.fxml"));
             Stage s = new Stage();
             s.setScene(new Scene(l.load()));
-            ((AddRuleController)l.getController()).setUnit(unit, () -> rulesTableView.setItems(FXCollections.observableArrayList(unit.getRules())));
+            ((AddRuleController)l.getController()).setUnit(unit, userManager, () -> rulesTableView.setItems(FXCollections.observableArrayList(unit.getRules())));
             s.initModality(Modality.APPLICATION_MODAL);
             s.showAndWait();
         } catch (Exception e) { e.printStackTrace(); }
