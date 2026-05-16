@@ -16,8 +16,8 @@ public final class Unit {
     // Нельзя пустое. До 64 символов.
     private String name;
 
-    // Кто создал (логин). На ранних этапах можно "SYSTEM".
-    private String ownerUsername;
+    // ID владельца (вариант 2: хранится числом, ссылается на User.id)
+    private long ownerId;
 
     // Когда создано. Программа ставит автоматически.
     private Instant createdAt;
@@ -53,8 +53,8 @@ public final class Unit {
         return name;
     }
 
-    public String getOwnerUsername() {
-        return ownerUsername;
+    public long getOwnerId() {
+        return ownerId;
     }
 
     public List<ConversionRule> getRules() {
@@ -73,8 +73,8 @@ public final class Unit {
         this.name = name;
     }
 
-    public void setOwnerUsername(String ownerUsername) {
-        this.ownerUsername = ownerUsername;
+    public void setOwnerId(long ownerId) {
+        this.ownerId = ownerId;
     }
 
     public void setUpdatedAt(Instant updatedAt) {
@@ -90,12 +90,12 @@ public final class Unit {
 
         if (o == null || getClass() != o.getClass()) return false;
         Unit unit = (Unit) o;
-        return id == unit.id && Objects.equals(code, unit.code) && Objects.equals(name, unit.name) && Objects.equals(ownerUsername, unit.ownerUsername) && Objects.equals(createdAt, unit.createdAt) && Objects.equals(updatedAt, unit.updatedAt);
+        return id == unit.id && ownerId == unit.ownerId && Objects.equals(code, unit.code) && Objects.equals(name, unit.name) && Objects.equals(createdAt, unit.createdAt) && Objects.equals(updatedAt, unit.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, code, name, ownerUsername, createdAt, updatedAt);
+        return Objects.hash(id, code, name, ownerId, createdAt, updatedAt);
     }
 
     @Override
@@ -104,9 +104,12 @@ public final class Unit {
                 "code='" + code + '\'' +
                 ", id=" + id +
                 ", name='" + name + '\'' +
-                ", ownerUsername='" + ownerUsername + '\'' +
+                ", ownerId=" + ownerId +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
+    }
+    public void setId(long id) {
+        this.id = id;
     }
 }
