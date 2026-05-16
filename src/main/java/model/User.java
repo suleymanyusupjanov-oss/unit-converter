@@ -35,4 +35,14 @@ public final class User {
         this.passwordHash = passwordHash;
         this.createdAt = createdAt;
     }
+
+    public long getId() { return id; }
+    public String getLogin() { return login; }
+    public String getPasswordHash() { return passwordHash; }
+    public Instant getCreatedAt() { return createdAt; }
+
+    public void setId(long id) { this.id = id; }
+    public void setLogin(String login) { this.login = login; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }
