@@ -198,11 +198,16 @@ public class UnitCollectionManager {
     }
 
     public void add(model.Unit unit) {
-        // Присваиваем уникальный ID и увеличиваем счетчик
         unit.setId(this.nextId);
         this.nextId++;
 
-        // Добавляем во внутреннюю (незащищенную) коллекцию
+        if (unit.getCreatedAt() == null) {
+            unit.setCreatedAt(Instant.now());
+        }
+        if (unit.getUpdatedAt() == null) {
+            unit.setUpdatedAt(Instant.now());
+        }
+
         this.unitCollection.add(unit);
     }
 }

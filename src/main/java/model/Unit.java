@@ -77,6 +77,10 @@ public final class Unit {
         this.ownerId = ownerId;
     }
 
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
