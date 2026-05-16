@@ -26,4 +26,22 @@ public class LoginController {
     public boolean isLoginSuccessful() {
         return loginSuccessful;
     }
+
+    @FXML
+    public void initialize() {
+        loginButton.setOnAction(e -> handleLogin());
+        registerButton.setOnAction(e -> handleRegister());
+    }
+
+    private void handleLogin() {
+        String login = loginField.getText().trim();
+        String password = passwordField.getText();
+        try {
+            userManager.login(login, password);
+            loginSuccessful = true;
+            ((Stage) loginButton.getScene().getWindow()).close();
+        } catch (Exception ex) {
+            errorLabel.setText(ex.getMessage());
+        }
+    }
 }
