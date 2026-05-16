@@ -64,7 +64,13 @@ public class MainController {
 
     private void setupSelection() {
         unitsTableView.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
-            if (newVal != null) rulesTableView.setItems(FXCollections.observableArrayList(newVal.getRules()));
+            if (newVal != null) {
+                rulesTableView.setItems(FXCollections.observableArrayList(newVal.getRules()));
+                boolean isOwner = userManager != null
+                        && userManager.isLoggedIn()
+                        && newVal.getOwnerId() == userManager.getCurrentUser().getId();
+                addRuleButton.setDisable(!isOwner);
+            }
         });
     }
 
