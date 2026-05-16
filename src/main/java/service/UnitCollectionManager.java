@@ -1,6 +1,7 @@
 package service;
 import model.ConversionRule;
 import model.Unit;
+import storage.XmlStorage;
 import validation.UnitValidator;
 import validation.ConversionRuleValidator;
 import java.time.Instant;
@@ -30,12 +31,11 @@ public class UnitCollectionManager {
     // СОЗДАНИЕ ЕДИНИЦЫ
     // Метод создаёт новую единицу измерения
     // принимает данные от пользователя
-    public Unit createUnit(String code, String name, String ownerUsername) {
+    public Unit createUnit(String code, String name, long ownerId) {
 
         // ВАЛИДАЦИЯ данных
         UnitValidator.validateCode(code);
         UnitValidator.validateName(name);
-        UnitValidator.validateOwnerUsername(ownerUsername);
 
         // создаём объект с id и временем создания
         Unit unit = new Unit(generateId(), Instant.now());
@@ -43,7 +43,7 @@ public class UnitCollectionManager {
         // заполняем данные объекта
         unit.setCode(code);
         unit.setName(name);
-        unit.setOwnerUsername(ownerUsername);
+        unit.setOwnerId(ownerId);
 
         // устанавливаем время последнего изменения
         unit.setUpdatedAt(Instant.now());
@@ -153,7 +153,7 @@ public class UnitCollectionManager {
     // ЗАГРУЗКА ИЗ ФАЙЛА
     public void loadFromFile(String path) {
         try {
-            storage.XmlStorage xmlStorage = new storage.XmlStorage();
+            XmlStorage xmlStorage = new XmlStorage();
             List<Unit> loadedUnits = xmlStorage.load(path);
 
             // Если из файла пришла пустота - просто прерываемся, чтобы не затереть то, что есть
@@ -166,12 +166,10 @@ public class UnitCollectionManager {
             for (Unit unit : loadedUnits) {
                 validation.UnitValidator.validateCode(unit.getCode());
                 validation.UnitValidator.validateName(unit.getName());
-                validation.UnitValidator.validateOwnerUsername(unit.getOwnerUsername());
                 for (model.ConversionRule rule : unit.getRules()) {
                     validation.ConversionRuleValidator.validateFromUnitCode(rule.getFromUnitCode());
                     validation.ConversionRuleValidator.validateToUnitCode(rule.getToUnitCode());
                     validation.ConversionRuleValidator.validateFactor(rule.getFactor());
-                    validation.ConversionRuleValidator.validateOwnerUsername(rule.getOwnerUsername());
                 }
             }
 
@@ -197,5 +195,14 @@ public class UnitCollectionManager {
             System.err.println("КРИТИЧЕСКАЯ ОШИБКА ЗАГРУЗКИ ИЗ ФАЙЛА:");
             e.printStackTrace();
         }
+    }
+
+    public void add(model.Unit unit) {
+        // Присваиваем уникальный ID и увеличиваем счетчик
+        unit.setId(this.nextId);
+        this.nextId++;
+
+        // Добавляем во внутреннюю (незащищенную) коллекцию
+        this.unitCollection.add(unit);
     }
 }
