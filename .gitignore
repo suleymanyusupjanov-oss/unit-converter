@@ -32,3 +32,6 @@ target/
 .idea/
 *.iml
 
+data.xml
+users.xml
+.claude/
