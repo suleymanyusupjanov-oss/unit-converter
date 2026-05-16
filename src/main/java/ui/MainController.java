@@ -99,7 +99,13 @@ public class MainController {
         MenuItem delUnit = new MenuItem("Удалить");
         delUnit.setOnAction(e -> {
             Unit s = unitsListView.getSelectionModel().getSelectedItem();
-            if (s != null) { unitManager.remove(s.getId()); refreshData(); }
+            if (s == null) return;
+            if (s.getOwnerId() != userManager.getCurrentUser().getId()) {
+                showAlert("Нет прав", "Ошибка: у вас нет прав на изменение этого объекта", Alert.AlertType.ERROR);
+                return;
+            }
+            unitManager.remove(s.getId());
+            refreshData();
         });
         unitsListView.setContextMenu(new ContextMenu(delUnit));
     }
