@@ -1,172 +1,166 @@
 package ui;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
 import model.Unit;
 import model.ConversionRule;
 import service.UnitCollectionManager;
 import service.ConversionRuleCollectionManager;
 import service.ConversionService;
+import service.UserManager;
+import java.io.File;
+import java.util.Optional;
 
 public class MainController {
 
     @FXML private ListView<Unit> unitsListView;
     @FXML private TableView<ConversionRule> rulesTableView;
-    @FXML private Button convertButton;
-    @FXML private Button addUnitButton;
-    @FXML private Button addRuleButton; // Наша новая кнопка
-    @FXML private Button refreshButton;
+    @FXML private Button convertButton, addUnitButton, addRuleButton, saveFileButton, loadFileButton, refreshButton;
 
     private UnitCollectionManager unitManager;
-    private ConversionRuleCollectionManager ruleManager;
-    private ConversionService conversionService;
+    private UserManager userManager;
 
     @FXML
     public void initialize() {
-        // Настройка списков
-        unitsListView.setCellFactory(param -> new ListCell<Unit>() {
-            @Override
-            protected void updateItem(Unit item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.getCode() + " - " + item.getName());
-            }
-        });
-
-        TableColumn<ConversionRule, String> toUnitCol = new TableColumn<>("В какую единицу (To)");
-        toUnitCol.setCellValueFactory(new PropertyValueFactory<>("toUnitCode"));
-        toUnitCol.setPrefWidth(150);
-
-        TableColumn<ConversionRule, Double> factorCol = new TableColumn<>("Коэффициент");
-        factorCol.setCellValueFactory(new PropertyValueFactory<>("factor"));
-        factorCol.setPrefWidth(120);
-
-        rulesTableView.getColumns().addAll(toUnitCol, factorCol);
-
-        // Связь при клике
-        unitsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                rulesTableView.setItems(FXCollections.observableArrayList(newVal.getRules()));
-            } else {
-                rulesTableView.getItems().clear();
-            }
-        });
-
-        refreshButton.setOnAction(e -> {
-            refreshData();
-            showAlert("Успех", "Данные загружены!", Alert.AlertType.INFORMATION);
-        });
-
-        addUnitButton.setOnAction(e -> {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/AddUnitWindow.fxml"));
-                Parent root = loader.load();
-                AddUnitController controller = loader.getController();
-                controller.setUnitManager(unitManager, this::refreshData);
-                Stage stage = new Stage();
-                stage.setScene(new Scene(root));
-                stage.initModality(Modality.APPLICATION_MODAL);
-                stage.showAndWait();
-            } catch (Exception ex) { ex.printStackTrace(); }
-        });
-
-        // === ОЖИВЛЯЕМ КНОПКУ ДОБАВЛЕНИЯ ПРАВИЛА ===
-        addRuleButton.setOnAction(e -> {
-            Unit selected = unitsListView.getSelectionModel().getSelectedItem();
-            if (selected == null) {
-                showAlert("Внимание", "Сначала выберите единицу слева!", Alert.AlertType.WARNING);
-                return;
-            }
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/AddRuleWindow.fxml"));
-                Parent root = loader.load();
-                AddRuleController controller = loader.getController();
-                controller.setUnit(selected, () -> {
-                    rulesTableView.setItems(FXCollections.observableArrayList(selected.getRules()));
-                });
-                Stage stage = new Stage();
-                stage.setTitle("Добавить правило");
-                stage.setScene(new Scene(root));
-                stage.initModality(Modality.APPLICATION_MODAL);
-                stage.showAndWait();
-            } catch (Exception ex) { ex.printStackTrace(); }
-        });
-
-        convertButton.setOnAction(e -> {
-            Unit unit = unitsListView.getSelectionModel().getSelectedItem();
-            ConversionRule rule = rulesTableView.getSelectionModel().getSelectedItem();
-            if (unit == null || rule == null) {
-                showAlert("Внимание", "Выберите единицу и правило!", Alert.AlertType.WARNING);
-                return;
-            }
-            TextInputDialog dialog = new TextInputDialog("1.0");
-            dialog.setTitle("Конвертация");
-            dialog.setHeaderText("Перевод: " + unit.getCode() + " ➔ " + rule.getToUnitCode());
-            dialog.showAndWait().ifPresent(input -> {
-                try {
-                    double val = Double.parseDouble(input.replace(",", "."));
-                    showAlert("Результат", String.format("%s %s = %s %s", val, unit.getCode(), val * rule.getFactor(), rule.getToUnitCode()), Alert.AlertType.INFORMATION);
-                } catch (Exception ex) {
-                    showAlert("Ошибка", "Введите корректное число!", Alert.AlertType.ERROR);
-                }
-            });
-        });
-        // === КОНТЕКСТНОЕ МЕНЮ (УДАЛЕНИЕ ЕДИНИЦЫ) ===
-        ContextMenu unitMenu = new ContextMenu();
-        MenuItem deleteUnitItem = new MenuItem("🗑 Удалить единицу");
-        deleteUnitItem.setOnAction(event -> {
-            Unit selected = unitsListView.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                unitManager.remove(selected.getId()); // Твой родной метод из UnitCollectionManager
-                refreshData(); // Обновляем список на экране
-                rulesTableView.getItems().clear(); // Очищаем правую таблицу
-            }
-        });
-        unitMenu.getItems().add(deleteUnitItem);
-        unitsListView.setContextMenu(unitMenu);
-
-
-        // === КОНТЕКСТНОЕ МЕНЮ (УДАЛЕНИЕ ПРАВИЛА) ===
-        ContextMenu ruleMenu = new ContextMenu();
-        MenuItem deleteRuleItem = new MenuItem("🗑 Удалить правило");
-        deleteRuleItem.setOnAction(event -> {
-            Unit selectedUnit = unitsListView.getSelectionModel().getSelectedItem();
-            ConversionRule selectedRule = rulesTableView.getSelectionModel().getSelectedItem();
-
-            if (selectedUnit != null && selectedRule != null) {
-                // Удаляем правило из списка самой единицы
-                selectedUnit.getRules().remove(selectedRule);
-                // Обновляем табличку на экране
-                rulesTableView.getItems().remove(selectedRule);
-            }
-        });
-        ruleMenu.getItems().add(deleteRuleItem);
-        rulesTableView.setContextMenu(ruleMenu);
+        setupTables();
+        setupSelection();
+        setupContextMenus();
+        setupActions();
     }
 
-    public void setServices(UnitCollectionManager um, ConversionRuleCollectionManager rm, ConversionService cs) {
+    private void setupTables() {
+        unitsListView.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(Unit item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? null : item.getCode() + " - " + item.getName());
+            }
+        });
+        TableColumn<ConversionRule, String> toCol = new TableColumn<>("В единицу");
+        toCol.setCellValueFactory(new PropertyValueFactory<>("toUnitCode"));
+        TableColumn<ConversionRule, Double> factorCol = new TableColumn<>("Множитель");
+        factorCol.setCellValueFactory(new PropertyValueFactory<>("factor"));
+        rulesTableView.getColumns().setAll(toCol, factorCol);
+    }
+
+    private void setupSelection() {
+        unitsListView.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
+            if (newVal != null) rulesTableView.setItems(FXCollections.observableArrayList(newVal.getRules()));
+        });
+    }
+
+    private void setupActions() {
+        // ЗАГРУЗКА ЧЕРЕЗ ОКНО
+        loadFileButton.setOnAction(e -> {
+            FileChooser chooser = new FileChooser();
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Files", "*.xml"));
+            File file = chooser.showOpenDialog(loadFileButton.getScene().getWindow());
+            if (file != null) {
+                try {
+                    unitManager.loadFromFile(file.getAbsolutePath());
+                    refreshData();
+                    showAlert("Успех", "Загружено из " + file.getName(), Alert.AlertType.INFORMATION);
+                } catch (Exception ex) { showAlert("Ошибка", ex.getMessage(), Alert.AlertType.ERROR); }
+            }
+        });
+
+        // СОХРАНЕНИЕ ЧЕРЕЗ ОКНО
+        saveFileButton.setOnAction(e -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setInitialFileName("my_units.xml");
+            File file = chooser.showSaveDialog(saveFileButton.getScene().getWindow());
+            if (file != null) {
+                try {
+                    unitManager.saveToFile(file.getAbsolutePath());
+                    showAlert("Готово", "Файл сохранен!", Alert.AlertType.INFORMATION);
+                } catch (Exception ex) { showAlert("Ошибка", ex.getMessage(), Alert.AlertType.ERROR); }
+            }
+        });
+
+        addUnitButton.setOnAction(e -> openWindow("/AddUnitWindow.fxml", "Новая единица"));
+        addRuleButton.setOnAction(e -> {
+            Unit u = unitsListView.getSelectionModel().getSelectedItem();
+            if (u != null) openAddRuleWindow(u);
+            else showAlert("Инфо", "Выберите единицу измерения!", Alert.AlertType.WARNING);
+        });
+
+        convertButton.setOnAction(e -> handleConversion());
+        refreshButton.setOnAction(e -> refreshData());
+    }
+
+    private void setupContextMenus() {
+        MenuItem delUnit = new MenuItem("Удалить");
+        delUnit.setOnAction(e -> {
+            Unit s = unitsListView.getSelectionModel().getSelectedItem();
+            if (s != null) { unitManager.remove(s.getId()); refreshData(); }
+        });
+        unitsListView.setContextMenu(new ContextMenu(delUnit));
+    }
+
+    private void handleConversion() {
+        Unit u = unitsListView.getSelectionModel().getSelectedItem();
+        ConversionRule r = rulesTableView.getSelectionModel().getSelectedItem();
+        if (u == null || r == null) return;
+
+        TextInputDialog d = new TextInputDialog("1");
+        d.setHeaderText("Конвертация " + u.getCode() + " -> " + r.getToUnitCode());
+        d.showAndWait().ifPresent(val -> {
+            try {
+                double res = Double.parseDouble(val.replace(",", ".")) * r.getFactor();
+                showAlert("Результат", "Итого: " + res, Alert.AlertType.INFORMATION);
+            } catch (Exception ex) { showAlert("Ошибка", "Неверное число", Alert.AlertType.ERROR); }
+        });
+    }
+
+    public void setServices(UnitCollectionManager um, ConversionRuleCollectionManager rm, ConversionService cs, UserManager userMgr) {
         this.unitManager = um;
-        this.ruleManager = rm;
-        this.conversionService = cs;
+        this.userManager = userMgr;
+        updateButtonAccess();
         refreshData();
     }
 
-    private void refreshData() {
-        if (unitManager != null) {
-            unitsListView.setItems(FXCollections.observableArrayList(unitManager.getUnits()));
-        }
+    private void updateButtonAccess() {
+        boolean loggedIn = userManager != null && userManager.isLoggedIn();
+        addUnitButton.setDisable(!loggedIn);
+        addRuleButton.setDisable(!loggedIn);
+        saveFileButton.setDisable(!loggedIn);
+        loadFileButton.setDisable(!loggedIn);
     }
 
-    private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type); alert.setTitle(title); alert.setHeaderText(null);
-        alert.setContentText(message); alert.showAndWait();
+    private void refreshData() {
+        if (unitManager != null) unitsListView.setItems(FXCollections.observableArrayList(unitManager.getUnits()));
+    }
+
+    private void openWindow(String path, String title) {
+        try {
+            FXMLLoader l = new FXMLLoader(getClass().getResource(path));
+            Stage s = new Stage();
+            s.setScene(new Scene(l.load()));
+            if (path.contains("AddUnit")) ((AddUnitController)l.getController()).setUnitManager(unitManager, this::refreshData);
+            s.initModality(Modality.APPLICATION_MODAL);
+            s.showAndWait();
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void openAddRuleWindow(Unit unit) {
+        try {
+            FXMLLoader l = new FXMLLoader(getClass().getResource("/AddRuleWindow.fxml"));
+            Stage s = new Stage();
+            s.setScene(new Scene(l.load()));
+            ((AddRuleController)l.getController()).setUnit(unit, () -> rulesTableView.setItems(FXCollections.observableArrayList(unit.getRules())));
+            s.initModality(Modality.APPLICATION_MODAL);
+            s.showAndWait();
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void showAlert(String t, String c, Alert.AlertType type) {
+        Alert a = new Alert(type); a.setTitle(t); a.setHeaderText(null); a.setContentText(c); a.showAndWait();
     }
 }
