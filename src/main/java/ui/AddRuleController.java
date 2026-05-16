@@ -1,7 +1,7 @@
 package ui;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.TextField;
+    import javafx.scene.control.TextField;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import model.ConversionRule;
@@ -22,7 +22,7 @@ public class AddRuleController {
                 r.setFromUnitCode(targetUnit.getCode());
                 r.setToUnitCode(toUnitField.getText());
                 r.setFactor(Double.parseDouble(factorField.getText().replace(",", ".")));
-                // ownerId будет 0 пока не подключен UserManager (заглушка)
+                r.setOwnerId(0L);
 
                 targetUnit.getRules().add(r);
                 if (callback != null) callback.run();
