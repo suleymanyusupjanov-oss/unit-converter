@@ -15,6 +15,7 @@ import storage.UserXmlStorage;
 public class MainApp extends Application {
 
     private static final String USERS_FILE = "users.xml";
+    private static final String DATA_FILE = "data.xml";
 
     @Override
     public void start(Stage primaryStage) throws Exception {
