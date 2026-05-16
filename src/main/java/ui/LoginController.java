@@ -44,4 +44,17 @@ public class LoginController {
             errorLabel.setText(ex.getMessage());
         }
     }
+
+    private void handleRegister() {
+        String login = loginField.getText().trim();
+        String password = passwordField.getText();
+        try {
+            userManager.register(login, password);
+            errorLabel.setStyle("-fx-text-fill: green;");
+            errorLabel.setText("Регистрация успешна! Теперь войдите.");
+        } catch (Exception ex) {
+            errorLabel.setStyle("-fx-text-fill: red;");
+            errorLabel.setText(ex.getMessage());
+        }
+    }
 }
