@@ -38,4 +38,17 @@ public class UserManager {
         }
         throw new IllegalArgumentException("Неверный логин или пароль");
     }
+
+    public User getCurrentUser() { return currentUser; }
+
+    public boolean isLoggedIn() { return currentUser != null; }
+
+    public void logout() { currentUser = null; }
+
+    public void setUsers(List<User> loaded) {
+        users.clear();
+        users.addAll(loaded);
+        long maxId = loaded.stream().mapToLong(User::getId).max().orElse(0);
+        nextId = maxId + 1;
+    }
 }
