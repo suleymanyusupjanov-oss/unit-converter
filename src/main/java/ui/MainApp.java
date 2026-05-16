@@ -14,8 +14,41 @@ import storage.UserXmlStorage;
 
 public class MainApp extends Application {
 
+    private static final String USERS_FILE = "users.xml";
+
     @Override
     public void start(Stage primaryStage) throws Exception {
+        UserManager userManager = new UserManager();
+        UserXmlStorage userStorage = new UserXmlStorage();
+
+        // Загружаем пользователей из файла при старте
+        try {
+            userManager.setUsers(userStorage.load(USERS_FILE));
+        } catch (Exception e) {
+            System.err.println("Не удалось загрузить пользователей: " + e.getMessage());
+        }
+
+        // Показываем окно входа
+        FXMLLoader loginLoader = new FXMLLoader(getClass().getResource("/LoginWindow.fxml"));
+        Stage loginStage = new Stage();
+        loginStage.setTitle("Вход");
+        loginStage.setScene(new Scene(loginLoader.load()));
+        loginStage.initModality(Modality.APPLICATION_MODAL);
+        LoginController loginController = loginLoader.getController();
+        loginController.setUserManager(userManager);
+        loginStage.showAndWait();
+
+        // Сохраняем пользователей (мог зарегистрироваться новый)
+        try {
+            userStorage.save(userManager.getUsers(), USERS_FILE);
+        } catch (Exception e) {
+            System.err.println("Не удалось сохранить пользователей: " + e.getMessage());
+        }
+
+        // Если не вошёл — не открываем главное окно
+        if (!loginController.isLoginSuccessful()) return;
+
+        // Открываем главное окно
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/MainWindow.fxml"));
         Parent root = loader.load();
         MainController controller = loader.getController();
@@ -24,9 +57,9 @@ public class MainApp extends Application {
         ConversionRuleCollectionManager ruleManager = new ConversionRuleCollectionManager();
         ConversionService conversionService = new ConversionService(unitManager, ruleManager);
 
-        controller.setServices(unitManager, ruleManager, conversionService);
+        controller.setServices(unitManager, ruleManager, conversionService, userManager);
 
-        primaryStage.setTitle("Unit Converter Pro");
+        primaryStage.setTitle("Unit Converter Pro — " + userManager.getCurrentUser().getLogin());
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
