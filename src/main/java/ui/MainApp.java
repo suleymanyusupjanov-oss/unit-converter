@@ -11,6 +11,7 @@ import service.ConversionService;
 import service.UnitCollectionManager;
 import service.UserManager;
 import storage.UserXmlStorage;
+import storage.XmlStorage;
 
 public class MainApp extends Application {
 
@@ -57,6 +58,13 @@ public class MainApp extends Application {
         UnitCollectionManager unitManager = new UnitCollectionManager();
         ConversionRuleCollectionManager ruleManager = new ConversionRuleCollectionManager();
         ConversionService conversionService = new ConversionService(unitManager, ruleManager);
+
+        // Авто-загрузка данных после успешного входа
+        try {
+            unitManager.loadFromFile(DATA_FILE);
+        } catch (Exception e) {
+            System.err.println("Файл данных не найден, начинаем с пустой коллекции.");
+        }
 
         controller.setServices(unitManager, ruleManager, conversionService, userManager);
 
