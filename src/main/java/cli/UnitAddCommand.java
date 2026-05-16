@@ -16,7 +16,7 @@ public class UnitAddCommand extends Command {
         String name = context.scanner().nextLine().trim();
 
         // Валидация вызовется внутри менеджера
-        Unit unit = context.unitManager().createUnit(code, name, "SYSTEM");
+        Unit unit = context.unitManager().createUnit(code, name, 0L);
         System.out.println("OK unit_id=" + unit.getId());
     }
 }
