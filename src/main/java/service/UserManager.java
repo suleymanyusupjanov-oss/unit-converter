@@ -28,4 +28,14 @@ public class UserManager {
         users.add(user);
         return user;
     }
+
+    public User login(String login, String password) {
+        for (User u : users) {
+            if (u.getLogin().equals(login) && u.checkPassword(password)) {
+                currentUser = u;
+                return u;
+            }
+        }
+        throw new IllegalArgumentException("Неверный логин или пароль");
+    }
 }
