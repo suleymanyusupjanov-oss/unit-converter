@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserManager {
+public class    UserManager {
 
     private final List<User> users = new ArrayList<>();
     private long nextId = 1;
@@ -44,6 +44,10 @@ public class UserManager {
     public boolean isLoggedIn() { return currentUser != null; }
 
     public void logout() { currentUser = null; }
+
+    public java.util.Optional<User> findById(long id) {
+        return users.stream().filter(u -> u.getId() == id).findFirst();
+    }
 
     public void setUsers(List<User> loaded) {
         users.clear();

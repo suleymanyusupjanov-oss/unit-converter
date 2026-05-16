@@ -5,11 +5,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import model.User;
 import model.Unit;
 import model.ConversionRule;
 import service.UnitCollectionManager;
@@ -21,7 +23,7 @@ import java.util.Optional;
 
 public class MainController {
 
-    @FXML private ListView<Unit> unitsListView;
+    @FXML private TableView<Unit> unitsTableView;
     @FXML private TableView<ConversionRule> rulesTableView;
     @FXML private Button convertButton, addUnitButton, addRuleButton, saveFileButton, loadFileButton, refreshButton;
 
@@ -37,12 +39,22 @@ public class MainController {
     }
 
     private void setupTables() {
-        unitsListView.setCellFactory(lv -> new ListCell<>() {
-            @Override protected void updateItem(Unit item, boolean empty) {
-                super.updateItem(item, empty);
-                setText((empty || item == null) ? null : item.getCode() + " - " + item.getName());
-            }
+        TableColumn<Unit, String> codeCol = new TableColumn<>("Код");
+        codeCol.setCellValueFactory(new PropertyValueFactory<>("code"));
+
+        TableColumn<Unit, String> nameCol = new TableColumn<>("Название");
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+        TableColumn<Unit, String> ownerCol = new TableColumn<>("Владелец");
+        ownerCol.setCellValueFactory(data -> {
+            long ownerId = data.getValue().getOwnerId();
+            String login = userManager == null ? "—"
+                : userManager.findById(ownerId).map(User::getLogin).orElse("—");
+            return new SimpleStringProperty(login);
         });
+
+        unitsTableView.getColumns().setAll(codeCol, nameCol, ownerCol);
+
         TableColumn<ConversionRule, String> toCol = new TableColumn<>("В единицу");
         toCol.setCellValueFactory(new PropertyValueFactory<>("toUnitCode"));
         TableColumn<ConversionRule, Double> factorCol = new TableColumn<>("Множитель");
@@ -51,7 +63,7 @@ public class MainController {
     }
 
     private void setupSelection() {
-        unitsListView.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
+        unitsTableView.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
             if (newVal != null) rulesTableView.setItems(FXCollections.observableArrayList(newVal.getRules()));
         });
     }
@@ -86,7 +98,7 @@ public class MainController {
 
         addUnitButton.setOnAction(e -> openWindow("/AddUnitWindow.fxml", "Новая единица"));
         addRuleButton.setOnAction(e -> {
-            Unit u = unitsListView.getSelectionModel().getSelectedItem();
+            Unit u = unitsTableView.getSelectionModel().getSelectedItem();
             if (u != null) openAddRuleWindow(u);
             else showAlert("Инфо", "Выберите единицу измерения!", Alert.AlertType.WARNING);
         });
@@ -98,7 +110,7 @@ public class MainController {
     private void setupContextMenus() {
         MenuItem delUnit = new MenuItem("Удалить");
         delUnit.setOnAction(e -> {
-            Unit s = unitsListView.getSelectionModel().getSelectedItem();
+            Unit s = unitsTableView.getSelectionModel().getSelectedItem();
             if (s == null) return;
             if (s.getOwnerId() != userManager.getCurrentUser().getId()) {
                 showAlert("Нет прав", "Ошибка: у вас нет прав на изменение этого объекта", Alert.AlertType.ERROR);
@@ -107,11 +119,11 @@ public class MainController {
             unitManager.remove(s.getId());
             refreshData();
         });
-        unitsListView.setContextMenu(new ContextMenu(delUnit));
+        unitsTableView.setContextMenu(new ContextMenu(delUnit));
     }
 
     private void handleConversion() {
-        Unit u = unitsListView.getSelectionModel().getSelectedItem();
+        Unit u = unitsTableView.getSelectionModel().getSelectedItem();
         ConversionRule r = rulesTableView.getSelectionModel().getSelectedItem();
         if (u == null || r == null) return;
 
@@ -141,7 +153,7 @@ public class MainController {
     }
 
     private void refreshData() {
-        if (unitManager != null) unitsListView.setItems(FXCollections.observableArrayList(unitManager.getUnits()));
+        if (unitManager != null) unitsTableView.setItems(FXCollections.observableArrayList(unitManager.getUnits()));
     }
 
     private void openWindow(String path, String title) {
