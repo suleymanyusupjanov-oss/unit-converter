@@ -33,10 +33,13 @@
             <padding><Insets bottom="15.0" left="15.0" right="15.0" top="15.0" /></padding>
             <Button fx:id="convertButton" text="Конвертировать значение" />
             <Button fx:id="addUnitButton" text="Добавить единицу" />
-
             <Button fx:id="addRuleButton" text="Добавить правило" />
 
+            <Button fx:id="saveFileButton" text="Сохранить в XML" />
+            <Button fx:id="loadFileButton" text="Загрузить в XML" />
+
             <HBox HBox.hgrow="ALWAYS" />
+
             <Button fx:id="refreshButton" style="-fx-font-weight: bold;" text="🔄 Refresh (Обновить данные)" />
         </HBox>
     </bottom>
