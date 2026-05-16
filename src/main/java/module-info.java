@@ -14,6 +14,9 @@ module unit.converter {
     opens ui to javafx.fxml;
     exports ui;
 
+    // Разрешаем Jackson и JavaFX читать User через рефлексию
+    opens storage to com.fasterxml.jackson.databind;
+
     //4. Разрешаем таблицам на экране И библиотеке Jackson читать данные из model
     opens model to javafx.base, com.fasterxml.jackson.databind;
     exports model;
