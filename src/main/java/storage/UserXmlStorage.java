@@ -18,4 +18,14 @@ public class UserXmlStorage {
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
+
+    public void save(List<User> users, String path) throws Exception {
+        mapper.writeValue(new File(path), users);
+    }
+
+    public List<User> load(String path) throws Exception {
+        File f = new File(path);
+        if (!f.exists() || f.length() == 0) return new ArrayList<>();
+        return mapper.readValue(f, new TypeReference<List<User>>() {});
+    }
 }
