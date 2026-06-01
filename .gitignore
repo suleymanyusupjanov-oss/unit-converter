@@ -35,3 +35,6 @@ target/
 data.xml
 users.xml
 .claude/
+
+# Этап 6: настройки подключения к БД (содержат пароль)
+db.properties
