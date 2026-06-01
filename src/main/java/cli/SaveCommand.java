@@ -3,25 +3,11 @@ package cli;
 public class SaveCommand extends Command {
 
     public SaveCommand() {
-        super("save", "Сохранить коллекцию в XML файл. Использование: save <имя_файла.xml>");
+        super("save", "(этап 6) БД сохраняет каждую операцию автоматически.");
     }
 
     @Override
     public void execute(String[] args, CommandContext context) {
-        if (args.length == 0) {
-            System.out.println("Ошибка: Вы не указали путь к файлу!");
-            System.out.println("Пример правильного ввода: save data.xml");
-            return;
-        }
-
-        String path = args[0];
-
-        try {
-            // ИСПОЛЬЗУЕМ unitManager() ТАК КАК ЭТО RECORD
-            context.unitManager().saveToFile(path);
-
-        } catch (Exception e) {
-            System.out.println("Критическая ошибка при сохранении: " + e.getMessage());
-        }
+        System.out.println("OK: БД сохраняет каждую операцию автоматически — отдельное save не требуется.");
     }
 }

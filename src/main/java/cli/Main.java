@@ -1,8 +1,11 @@
 package cli;
 
+import config.DbConfig;
 import service.ConversionRuleCollectionManager;
 import service.ConversionService;
 import service.UnitCollectionManager;
+import storage.DbStorage;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,10 +13,22 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        // Инициализация сервисов этапа 1
-        UnitCollectionManager unitManager = new UnitCollectionManager();
-        ConversionRuleCollectionManager ruleManager = new ConversionRuleCollectionManager();
+        // Этап 6: подключение к PostgreSQL
+        DbStorage db = new DbStorage(DbConfig.load());
+        try {
+            db.connect();
+        } catch (Exception e) {
+            System.err.println("Не удалось подключиться к БД: " + e.getMessage());
+            return;
+        }
+
+        UnitCollectionManager unitManager = new UnitCollectionManager(db);
+        ConversionRuleCollectionManager ruleManager = new ConversionRuleCollectionManager(db);
         ConversionService conversionService = new ConversionService(unitManager, ruleManager);
+
+        // Загрузка данных в in-memory кэш
+        unitManager.loadFromDb();
+        ruleManager.loadFromDb();
 
         Scanner scanner = new Scanner(System.in);
         CommandContext context = new CommandContext(scanner, unitManager, ruleManager, conversionService);

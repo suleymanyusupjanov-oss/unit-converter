@@ -8,7 +8,6 @@ import javafx.scene.Scene;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.User;
@@ -18,7 +17,6 @@ import service.UnitCollectionManager;
 import service.ConversionRuleCollectionManager;
 import service.ConversionService;
 import service.UserManager;
-import java.io.File;
 import java.util.Optional;
 
 public class MainController {
@@ -28,7 +26,12 @@ public class MainController {
     @FXML private Button convertButton, addUnitButton, addRuleButton, saveFileButton, loadFileButton, refreshButton;
 
     private UnitCollectionManager unitManager;
+    private ConversionRuleCollectionManager ruleManager;
     private UserManager userManager;
+
+    // Этап 6: пункты контекстного меню — храним как поля, чтобы менять disabled по выделению
+    private MenuItem delUnitMenuItem;
+    private MenuItem delRuleMenuItem;
 
     @FXML
     public void initialize() {
@@ -63,44 +66,51 @@ public class MainController {
     }
 
     private void setupSelection() {
+        // При выборе юнита — обновляем правую таблицу и состояние кнопок/меню
         unitsTableView.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
             if (newVal != null) {
                 rulesTableView.setItems(FXCollections.observableArrayList(newVal.getRules()));
-                boolean isOwner = userManager != null
-                        && userManager.isLoggedIn()
-                        && newVal.getOwnerId() == userManager.getCurrentUser().getId();
+                boolean isOwner = isCurrentUser(newVal.getOwnerId());
                 addRuleButton.setDisable(!isOwner);
+                if (delUnitMenuItem != null) delUnitMenuItem.setDisable(!isOwner);
+            }
+        });
+
+        // При выборе правила — disable пункта "Удалить" если правило чужое
+        rulesTableView.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
+            if (delRuleMenuItem != null) {
+                boolean isOwner = newVal != null && isCurrentUser(newVal.getOwnerId());
+                delRuleMenuItem.setDisable(!isOwner);
             }
         });
     }
 
+    private boolean isCurrentUser(long ownerId) {
+        return userManager != null
+                && userManager.isLoggedIn()
+                && userManager.getCurrentUser().getId() == ownerId;
+    }
+
     private void setupActions() {
-        // ЗАГРУЗКА ЧЕРЕЗ ОКНО
+        // Этап 6: Refresh из БД — для актуализации кэша (units + rules + users)
         loadFileButton.setOnAction(e -> {
-            FileChooser chooser = new FileChooser();
-            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Files", "*.xml"));
-            File file = chooser.showOpenDialog(loadFileButton.getScene().getWindow());
-            if (file != null) {
-                try {
-                    unitManager.loadFromFile(file.getAbsolutePath());
-                    refreshData();
-                    showAlert("Успех", "Загружено из " + file.getName(), Alert.AlertType.INFORMATION);
-                } catch (Exception ex) { showAlert("Ошибка", ex.getMessage(), Alert.AlertType.ERROR); }
+            try {
+                userManager.loadFromDb();   // ← чтобы owner-логины новых юзеров подтягивались
+                unitManager.loadFromDb();
+                ruleManager.loadFromDb();
+                linkRulesToUnits();
+                refreshData();
+                showAlert("Готово", "Данные обновлены из БД", Alert.AlertType.INFORMATION);
+            } catch (Exception ex) {
+                showAlert("Ошибка БД", ex.getMessage(), Alert.AlertType.ERROR);
             }
         });
 
-        // СОХРАНЕНИЕ ЧЕРЕЗ ОКНО
-        saveFileButton.setOnAction(e -> {
-            FileChooser chooser = new FileChooser();
-            chooser.setInitialFileName("data.xml");
-            File file = chooser.showSaveDialog(saveFileButton.getScene().getWindow());
-            if (file != null) {
-                try {
-                    unitManager.saveToFile(file.getAbsolutePath());
-                    showAlert("Готово", "Файл сохранен!", Alert.AlertType.INFORMATION);
-                } catch (Exception ex) { showAlert("Ошибка", ex.getMessage(), Alert.AlertType.ERROR); }
-            }
-        });
+        // Этап 6: каждая операция уже сохраняется в БД сразу — отдельное сохранение не нужно
+        saveFileButton.setOnAction(e ->
+                showAlert("Информация",
+                          "БД сохраняет каждую операцию автоматически — отдельное сохранение не требуется.",
+                          Alert.AlertType.INFORMATION));
 
         addUnitButton.setOnAction(e -> openWindow("/AddUnitWindow.fxml", "Новая единица"));
         addRuleButton.setOnAction(e -> {
@@ -114,7 +124,8 @@ public class MainController {
     }
 
     private void setupContextMenus() {
-        MenuItem delUnit = new MenuItem("Удалить");
+        delUnitMenuItem = new MenuItem("Удалить");
+        MenuItem delUnit = delUnitMenuItem;
         delUnit.setOnAction(e -> {
             Unit s = unitsTableView.getSelectionModel().getSelectedItem();
             if (s == null) return;
@@ -127,7 +138,8 @@ public class MainController {
         });
         unitsTableView.setContextMenu(new ContextMenu(delUnit));
 
-        MenuItem delRule = new MenuItem("Удалить");
+        delRuleMenuItem = new MenuItem("Удалить");
+        MenuItem delRule = delRuleMenuItem;
         delRule.setOnAction(e -> {
             ConversionRule r = rulesTableView.getSelectionModel().getSelectedItem();
             Unit u = unitsTableView.getSelectionModel().getSelectedItem();
@@ -136,8 +148,13 @@ public class MainController {
                 showAlert("Нет прав", "Ошибка: у вас нет прав на удаление этого правила", Alert.AlertType.ERROR);
                 return;
             }
-            u.getRules().remove(r);
-            rulesTableView.setItems(FXCollections.observableArrayList(u.getRules()));
+            try {
+                ruleManager.remove(r.getId());          // ← Этап 6: удаление из БД
+                u.getRules().remove(r);                  // ← синхронизируем UI-кэш
+                rulesTableView.setItems(FXCollections.observableArrayList(u.getRules()));
+            } catch (Exception ex) {
+                showAlert("Ошибка БД", ex.getMessage(), Alert.AlertType.ERROR);
+            }
         });
         rulesTableView.setContextMenu(new ContextMenu(delRule));
     }
@@ -159,6 +176,7 @@ public class MainController {
 
     public void setServices(UnitCollectionManager um, ConversionRuleCollectionManager rm, ConversionService cs, UserManager userMgr) {
         this.unitManager = um;
+        this.ruleManager = rm;
         this.userManager = userMgr;
         updateButtonAccess();
         refreshData();
@@ -192,10 +210,24 @@ public class MainController {
             FXMLLoader l = new FXMLLoader(getClass().getResource("/AddRuleWindow.fxml"));
             Stage s = new Stage();
             s.setScene(new Scene(l.load()));
-            ((AddRuleController)l.getController()).setUnit(unit, userManager, () -> rulesTableView.setItems(FXCollections.observableArrayList(unit.getRules())));
+            ((AddRuleController)l.getController()).setUnit(
+                    unit, userManager, ruleManager,
+                    () -> rulesTableView.setItems(FXCollections.observableArrayList(unit.getRules())));
             s.initModality(Modality.APPLICATION_MODAL);
             s.showAndWait();
         } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    /** Связывает правила из ruleManager с их юнитами (для master-detail UI). */
+    private void linkRulesToUnits() {
+        for (var unit : unitManager.getUnits()) {
+            unit.getRules().clear();
+            for (var rule : ruleManager.getRules()) {
+                if (rule.getFromUnitCode().equals(unit.getCode())) {
+                    unit.getRules().add(rule);
+                }
+            }
+        }
     }
 
     private void showAlert(String t, String c, Alert.AlertType type) {

@@ -3,20 +3,16 @@ package cli;
 public class LoadCommand extends Command {
 
     public LoadCommand() {
-        super("load", "Загрузить коллекцию из XML файла. Использование: load <имя_файла.xml>");
+        super("load", "Обновить in-memory кэш из PostgreSQL (этап 6).");
     }
 
     @Override
     public void execute(String[] args, CommandContext context) {
-        if (args.length == 0) {
-            System.out.println("Ошибка: Вы не указали путь к файлу!");
-            System.out.println("Пример правильного ввода: load data.xml");
-            return;
+        try {
+            context.unitManager().loadFromDb();
+            System.out.println("OK: данные обновлены из БД");
+        } catch (Exception e) {
+            System.out.println("Ошибка БД: " + e.getMessage());
         }
-
-        String path = args[0];
-
-        // ИСПОЛЬЗУЕМ unitManager() ТАК КАК ЭТО RECORD
-        context.unitManager().loadFromFile(path);
     }
 }

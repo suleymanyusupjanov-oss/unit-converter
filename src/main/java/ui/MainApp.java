@@ -1,34 +1,36 @@
 package ui;
 
+import config.DbConfig;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import service.ConversionRuleCollectionManager;
 import service.ConversionService;
 import service.UnitCollectionManager;
 import service.UserManager;
-import storage.UserXmlStorage;
-import storage.XmlStorage;
+import storage.DbStorage;
 
 public class MainApp extends Application {
 
-    private static final String USERS_FILE = "users.xml";
-    private static final String DATA_FILE = "data.xml";
-
     @Override
     public void start(Stage primaryStage) throws Exception {
-        UserManager userManager = new UserManager();
-        UserXmlStorage userStorage = new UserXmlStorage();
 
-        // Загружаем пользователей из файла при старте
+        // === Этап 6: подключение к PostgreSQL ===
+        DbStorage db;
         try {
-            userManager.setUsers(userStorage.load(USERS_FILE));
+            db = new DbStorage(DbConfig.load());
+            db.connect();
         } catch (Exception e) {
-            System.err.println("Не удалось загрузить пользователей: " + e.getMessage());
+            showFatalDbError(e);
+            return;
         }
+
+        UserManager userManager = new UserManager(db);
+        userManager.loadFromDb();
 
         // Показываем окно входа
         FXMLLoader loginLoader = new FXMLLoader(getClass().getResource("/LoginWindow.fxml"));
@@ -40,30 +42,35 @@ public class MainApp extends Application {
         loginController.setUserManager(userManager);
         loginStage.showAndWait();
 
-        // Сохраняем пользователей (мог зарегистрироваться новый)
-        try {
-            userStorage.save(userManager.getUsers(), USERS_FILE);
-        } catch (Exception e) {
-            System.err.println("Не удалось сохранить пользователей: " + e.getMessage());
-        }
+        // Этап 6: регистрация уже сохранила пользователя в БД — XML save больше не нужен.
 
         // Если не вошёл — не открываем главное окно
-        if (!loginController.isLoginSuccessful()) return;
+        if (!loginController.isLoginSuccessful()) {
+            db.close();
+            return;
+        }
 
         // Открываем главное окно
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/MainWindow.fxml"));
         Parent root = loader.load();
         MainController controller = loader.getController();
 
-        UnitCollectionManager unitManager = new UnitCollectionManager();
-        ConversionRuleCollectionManager ruleManager = new ConversionRuleCollectionManager();
+        UnitCollectionManager unitManager = new UnitCollectionManager(db);
+        ConversionRuleCollectionManager ruleManager = new ConversionRuleCollectionManager(db);
         ConversionService conversionService = new ConversionService(unitManager, ruleManager);
 
-        // Авто-загрузка данных после успешного входа
-        try {
-            unitManager.loadFromFile(DATA_FILE);
-        } catch (Exception e) {
-            System.err.println("Файл данных не найден, начинаем с пустой коллекции.");
+        // Этап 6: загрузка из БД в in-memory кэш
+        unitManager.loadFromDb();
+        ruleManager.loadFromDb();
+
+        // Связываем правила с их юнитами по fromUnitCode (для master-detail UI)
+        for (var unit : unitManager.getUnits()) {
+            unit.getRules().clear();
+            for (var rule : ruleManager.getRules()) {
+                if (rule.getFromUnitCode().equals(unit.getCode())) {
+                    unit.getRules().add(rule);
+                }
+            }
         }
 
         controller.setServices(unitManager, ruleManager, conversionService, userManager);
@@ -71,16 +78,26 @@ public class MainApp extends Application {
         primaryStage.setTitle("Unit Converter Pro — " + userManager.getCurrentUser().getLogin());
         primaryStage.setScene(new Scene(root));
 
-        // Авто-сохранение данных при закрытии окна
-        primaryStage.setOnCloseRequest(e -> {
-            try {
-                unitManager.saveToFile(DATA_FILE);
-            } catch (Exception ex) {
-                System.err.println("Не удалось сохранить данные: " + ex.getMessage());
-            }
-        });
+        // Этап 6: каждая операция сохраняется в БД сразу — авто-сохранение при закрытии не нужно.
+        primaryStage.setOnCloseRequest(e -> db.close());
 
         primaryStage.show();
+    }
+
+    /** Показывает фатальную ошибку подключения к БД и закрывает приложение. */
+    private void showFatalDbError(Exception e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Не удалось подключиться к базе данных");
+        alert.setHeaderText("Подключение к PostgreSQL не удалось");
+        alert.setContentText(
+                "Причина: " + e.getMessage() + "\n\n" +
+                "Проверьте:\n" +
+                "  • Запущен ли PostgreSQL\n" +
+                "  • Правильны ли настройки в db.properties\n" +
+                "    (URL, пользователь, пароль)\n" +
+                "  • Применена ли schema.sql"
+        );
+        alert.showAndWait();
     }
 
     public static void main(String[] args) {

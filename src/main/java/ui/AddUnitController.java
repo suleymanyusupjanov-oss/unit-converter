@@ -40,13 +40,8 @@ public class AddUnitController {
         }
 
         try {
-            Unit unit = new Unit();
-            unit.setCode(code);
-            unit.setName(name);
-            unit.setOwnerId(userManager.getCurrentUser().getId());
-
-
-            unitManager.add(unit);
+            // Этап 6: createUnit() сам валидирует, вставляет в БД и кладёт в кэш.
+            unitManager.createUnit(code, name, userManager.getCurrentUser().getId());
 
             if (onUnitAddedCallback != null) {
                 onUnitAddedCallback.run();
