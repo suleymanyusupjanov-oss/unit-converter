@@ -84,6 +84,14 @@ public final class ConversionRule {
         this.updatedAt = updatedAt;
     }
 
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
