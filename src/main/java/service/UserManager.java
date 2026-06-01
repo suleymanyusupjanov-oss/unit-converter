@@ -1,15 +1,22 @@
 package service;
 
 import model.User;
-import java.time.Instant;
+import storage.DbErrors;
+import storage.DbStorage;
+
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class    UserManager {
 
+    private final DbStorage db;
     private final List<User> users = new ArrayList<>();
-    private long nextId = 1;
     private User currentUser = null;
+
+    public UserManager(DbStorage db) {
+        this.db = db;
+    }
 
     public List<User> getUsers() {
         return users;
@@ -24,7 +31,15 @@ public class    UserManager {
             if (u.getLogin().equals(login))
                 throw new IllegalArgumentException("Пользователь с таким логином уже существует");
         }
-        User user = new User(nextId++, login, User.hashPassword(password), Instant.now());
+
+        User user = new User();
+        user.setLogin(login);
+        user.setPasswordHash(User.hashPassword(password));
+        try {
+            db.insertUser(user); // id и createdAt проставит БД
+        } catch (SQLException e) {
+            throw new RuntimeException("Регистрация: " + DbErrors.humanize(e), e);
+        }
         users.add(user);
         return user;
     }
@@ -49,10 +64,13 @@ public class    UserManager {
         return users.stream().filter(u -> u.getId() == id).findFirst();
     }
 
-    public void setUsers(List<User> loaded) {
-        users.clear();
-        users.addAll(loaded);
-        long maxId = loaded.stream().mapToLong(User::getId).max().orElse(0);
-        nextId = maxId + 1;
+    /** Загружает всех пользователей из БД в in-memory кэш. Вызывать при старте. */
+    public void loadFromDb() {
+        try {
+            users.clear();
+            users.addAll(db.findAllUsers());
+        } catch (SQLException e) {
+            throw new RuntimeException("Загрузка пользователей: " + DbErrors.humanize(e), e);
+        }
     }
 }
