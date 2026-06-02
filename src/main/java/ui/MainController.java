@@ -23,7 +23,7 @@ public class MainController {
 
     @FXML private TableView<Unit> unitsTableView;
     @FXML private TableView<ConversionRule> rulesTableView;
-    @FXML private Button convertButton, addUnitButton, addRuleButton, saveFileButton, loadFileButton, refreshButton;
+    @FXML private Button convertButton, addUnitButton, addRuleButton, loadFileButton, refreshButton;
 
     private UnitCollectionManager unitManager;
     private ConversionRuleCollectionManager ruleManager;
@@ -106,12 +106,6 @@ public class MainController {
             }
         });
 
-        // Этап 6: каждая операция уже сохраняется в БД сразу — отдельное сохранение не нужно
-        saveFileButton.setOnAction(e ->
-                showAlert("Информация",
-                          "БД сохраняет каждую операцию автоматически — отдельное сохранение не требуется.",
-                          Alert.AlertType.INFORMATION));
-
         addUnitButton.setOnAction(e -> openWindow("/AddUnitWindow.fxml", "Новая единица"));
         addRuleButton.setOnAction(e -> {
             Unit u = unitsTableView.getSelectionModel().getSelectedItem();
@@ -186,7 +180,6 @@ public class MainController {
         boolean loggedIn = userManager != null && userManager.isLoggedIn();
         addUnitButton.setDisable(!loggedIn);
         addRuleButton.setDisable(!loggedIn);
-        saveFileButton.setDisable(!loggedIn);
         loadFileButton.setDisable(!loggedIn);
     }
 

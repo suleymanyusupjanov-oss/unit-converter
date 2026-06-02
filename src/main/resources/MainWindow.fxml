@@ -38,8 +38,7 @@
             <Button fx:id="addUnitButton" text="Добавить единицу" />
             <Button fx:id="addRuleButton" text="Добавить правило" />
 
-            <Button fx:id="saveFileButton" text="Сохранить в XML" />
-            <Button fx:id="loadFileButton" text="Загрузить в XML" />
+            <Button fx:id="loadFileButton" text="Обновить из БД" />
 
             <HBox HBox.hgrow="ALWAYS" />
 
