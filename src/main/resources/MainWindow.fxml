@@ -38,11 +38,9 @@
             <Button fx:id="addUnitButton" text="Добавить единицу" />
             <Button fx:id="addRuleButton" text="Добавить правило" />
 
-            <Button fx:id="loadFileButton" text="Обновить из БД" />
-
             <HBox HBox.hgrow="ALWAYS" />
 
-            <Button fx:id="refreshButton" style="-fx-font-weight: bold;" text="🔄 Refresh (Обновить данные)" />
+            <Button fx:id="refreshButton" style="-fx-font-weight: bold;" text="🔄 Обновить из БД" />
         </HBox>
     </bottom>
 </BorderPane>

@@ -23,7 +23,7 @@ public class MainController {
 
     @FXML private TableView<Unit> unitsTableView;
     @FXML private TableView<ConversionRule> rulesTableView;
-    @FXML private Button convertButton, addUnitButton, addRuleButton, loadFileButton, refreshButton;
+    @FXML private Button convertButton, addUnitButton, addRuleButton, refreshButton;
 
     private UnitCollectionManager unitManager;
     private ConversionRuleCollectionManager ruleManager;
@@ -92,8 +92,17 @@ public class MainController {
     }
 
     private void setupActions() {
-        // Этап 6: Refresh из БД — для актуализации кэша (units + rules + users)
-        loadFileButton.setOnAction(e -> {
+        addUnitButton.setOnAction(e -> openWindow("/AddUnitWindow.fxml", "Новая единица"));
+        addRuleButton.setOnAction(e -> {
+            Unit u = unitsTableView.getSelectionModel().getSelectedItem();
+            if (u != null) openAddRuleWindow(u);
+            else showAlert("Инфо", "Выберите единицу измерения!", Alert.AlertType.WARNING);
+        });
+
+        convertButton.setOnAction(e -> handleConversion());
+
+        // Этап 6: Refresh перечитывает данные из БД (units + rules + users) и обновляет таблицы
+        refreshButton.setOnAction(e -> {
             try {
                 userManager.loadFromDb();   // ← чтобы owner-логины новых юзеров подтягивались
                 unitManager.loadFromDb();
@@ -105,16 +114,6 @@ public class MainController {
                 showAlert("Ошибка БД", ex.getMessage(), Alert.AlertType.ERROR);
             }
         });
-
-        addUnitButton.setOnAction(e -> openWindow("/AddUnitWindow.fxml", "Новая единица"));
-        addRuleButton.setOnAction(e -> {
-            Unit u = unitsTableView.getSelectionModel().getSelectedItem();
-            if (u != null) openAddRuleWindow(u);
-            else showAlert("Инфо", "Выберите единицу измерения!", Alert.AlertType.WARNING);
-        });
-
-        convertButton.setOnAction(e -> handleConversion());
-        refreshButton.setOnAction(e -> refreshData());
     }
 
     private void setupContextMenus() {
@@ -180,7 +179,6 @@ public class MainController {
         boolean loggedIn = userManager != null && userManager.isLoggedIn();
         addUnitButton.setDisable(!loggedIn);
         addRuleButton.setDisable(!loggedIn);
-        loadFileButton.setDisable(!loggedIn);
     }
 
     private void refreshData() {
