@@ -104,16 +104,48 @@ public class MainController {
         // Этап 6: Refresh перечитывает данные из БД (units + rules + users) и обновляет таблицы
         refreshButton.setOnAction(e -> {
             try {
-                userManager.loadFromDb();   // ← чтобы owner-логины новых юзеров подтягивались
-                unitManager.loadFromDb();
-                ruleManager.loadFromDb();
-                linkRulesToUnits();
-                refreshData();
+                reloadFromDb();
                 showAlert("Готово", "Данные обновлены из БД", Alert.AlertType.INFORMATION);
             } catch (Exception ex) {
                 showAlert("Ошибка БД", ex.getMessage(), Alert.AlertType.ERROR);
             }
         });
+    }
+
+    /** Перечитывает users + units + rules из БД и перерисовывает таблицы. */
+    private void reloadFromDb() {
+        userManager.loadFromDb();   // ← чтобы owner-логины новых юзеров подтягивались
+        unitManager.loadFromDb();
+        ruleManager.loadFromDb();
+        linkRulesToUnits();
+        refreshData();
+    }
+
+    /**
+     * Доп. задание (вариант 3): авто-обновление по уведомлению из БД (LISTEN/NOTIFY).
+     * Вызывается из фонового слушателя через Platform.runLater. Перечитывает данные,
+     * сохраняя текущее выделение строки, и БЕЗ диалогов (чтобы не мешать пользователю).
+     */
+    public void onExternalChange() {
+        // запоминаем id выделенной единицы, чтобы вернуть выделение после перезагрузки
+        Unit selected = unitsTableView.getSelectionModel().getSelectedItem();
+        long selectedId = (selected != null) ? selected.getId() : -1;
+
+        try {
+            reloadFromDb();
+        } catch (Exception ex) {
+            // тихо игнорируем: следующее уведомление попробует снова
+            return;
+        }
+
+        if (selectedId != -1) {
+            for (Unit u : unitManager.getUnits()) {
+                if (u.getId() == selectedId) {
+                    unitsTableView.getSelectionModel().select(u);
+                    break;
+                }
+            }
+        }
     }
 
     private void setupContextMenus() {

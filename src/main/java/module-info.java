@@ -6,6 +6,9 @@ module unit.converter {
     // Этап 6: JDBC для PostgreSQL
     requires java.sql;
 
+    // Доп. задание: прямой доступ к PGConnection/PGNotification для LISTEN/NOTIFY
+    requires org.postgresql.jdbc;
+
     // Разрешаем JavaFX работать с пакетом ui (FXML)
     opens ui to javafx.fxml;
     exports ui;

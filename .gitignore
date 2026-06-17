@@ -38,3 +38,6 @@ users.xml
 
 # Этап 6: настройки подключения к БД (содержат пароль)
 db.properties
+
+# Crash-дампы Git Bash
+*.stackdump

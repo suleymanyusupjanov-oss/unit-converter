@@ -2,6 +2,7 @@ package ui;
 
 import config.DbConfig;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -12,6 +13,7 @@ import service.ConversionRuleCollectionManager;
 import service.ConversionService;
 import service.UnitCollectionManager;
 import service.UserManager;
+import storage.DbChangeListener;
 import storage.DbStorage;
 
 public class MainApp extends Application {
@@ -78,8 +80,19 @@ public class MainApp extends Application {
         primaryStage.setTitle("Unit Converter Pro — " + userManager.getCurrentUser().getLogin());
         primaryStage.setScene(new Scene(root));
 
+        // Доп. задание (вариант 3): real-time синхронизация между клиентами.
+        // Слушатель в фоне ждёт уведомлений БД (LISTEN/NOTIFY) и при изменении
+        // данных другим клиентом просит контроллер перечитать таблицы.
+        DbChangeListener changeListener = new DbChangeListener(
+                DbConfig.load(),
+                () -> Platform.runLater(controller::onExternalChange));
+        changeListener.start();
+
         // Этап 6: каждая операция сохраняется в БД сразу — авто-сохранение при закрытии не нужно.
-        primaryStage.setOnCloseRequest(e -> db.close());
+        primaryStage.setOnCloseRequest(e -> {
+            changeListener.stop();   // останавливаем фоновый поток-слушатель
+            db.close();
+        });
 
         primaryStage.show();
     }
