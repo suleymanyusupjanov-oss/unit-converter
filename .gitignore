@@ -41,3 +41,9 @@ db.properties
 
 # Crash-дампы Git Bash
 *.stackdump
+
+# Артефакт ruflo/vector-тулинга
+ruvector.db
+
+# Личный конспект для устной защиты (не часть сдачи ЛР)
+теория_устная_конспект.md
