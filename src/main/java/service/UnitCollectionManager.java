@@ -32,7 +32,7 @@ public class UnitCollectionManager {
         // запрет дубликата кода у одного владельца (на уровне БД — UNIQUE(code, owner_id))
         for (Unit existing : unitCollection) {
             if (existing.getOwnerId() == ownerId && existing.getCode().equals(code)) {
-                throw new IllegalArgumentException("У вас уже есть единица с кодом '" + code + "'");
+                throw new IllegalArgumentException("Такая единица уже существует");
             }
         }
 
@@ -111,7 +111,7 @@ public class UnitCollectionManager {
         for (Unit existing : unitCollection) {
             if (existing.getId() != id && existing.getOwnerId() == unit.getOwnerId()
                     && existing.getCode().equals(code)) {
-                throw new IllegalArgumentException("У вас уже есть единица с кодом '" + code + "'");
+                throw new IllegalArgumentException("Такая единица уже существует");
             }
         }
 
