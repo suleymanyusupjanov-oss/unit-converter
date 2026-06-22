@@ -23,7 +23,7 @@ public class MainController {
 
     @FXML private TableView<Unit> unitsTableView;
     @FXML private TableView<ConversionRule> rulesTableView;
-    @FXML private Button convertButton, addUnitButton, addRuleButton, refreshButton;
+    @FXML private Button convertButton, addUnitButton, addRuleButton;
 
     private UnitCollectionManager unitManager;
     private ConversionRuleCollectionManager ruleManager;
@@ -100,16 +100,8 @@ public class MainController {
         });
 
         convertButton.setOnAction(e -> handleConversion());
-
-        // Этап 6: Refresh перечитывает данные из БД (units + rules + users) и обновляет таблицы
-        refreshButton.setOnAction(e -> {
-            try {
-                reloadFromDb();
-                showAlert("Готово", "Данные обновлены из БД", Alert.AlertType.INFORMATION);
-            } catch (Exception ex) {
-                showAlert("Ошибка БД", ex.getMessage(), Alert.AlertType.ERROR);
-            }
-        });
+        // Кнопка «Обновить из БД» убрана: данные обновляются автоматически
+        // по уведомлению LISTEN/NOTIFY (доп. задание, см. onExternalChange).
     }
 
     /** Перечитывает users + units + rules из БД и перерисовывает таблицы. */

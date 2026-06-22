@@ -37,10 +37,6 @@
             <Button fx:id="convertButton" text="Конвертировать значение" />
             <Button fx:id="addUnitButton" text="Добавить единицу" />
             <Button fx:id="addRuleButton" text="Добавить правило" />
-
-            <HBox HBox.hgrow="ALWAYS" />
-
-            <Button fx:id="refreshButton" style="-fx-font-weight: bold;" text="🔄 Обновить из БД" />
         </HBox>
     </bottom>
 </BorderPane>
