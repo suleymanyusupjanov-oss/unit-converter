@@ -51,9 +51,10 @@ public class AddUnitController {
             stage.close();
 
         } catch (Exception e) {
-            // ЭТА СТРОЧКА СПАСЕТ НАМ ЖИЗНЬ. Теперь подробная ошибка будет печататься в консоли IDEA внизу!
+            // для разработчика — полная ошибка в консоль,
             e.printStackTrace();
-            showAlert("Ошибка", "Произошел сбой: " + e.getClass().getSimpleName() + ". Посмотри красную консоль в IDEA!", Alert.AlertType.ERROR);
+            // пользователю — понятное сообщение из исключения (например "Такая единица уже существует").
+            showAlert("Ошибка", e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
