@@ -246,7 +246,8 @@ public class MainController {
         for (var unit : unitManager.getUnits()) {
             unit.getRules().clear();
             for (var rule : ruleManager.getRules()) {
-                if (rule.getFromUnitCode().equals(unit.getCode())) {
+                if (rule.getFromUnitCode().equals(unit.getCode())
+                        && rule.getOwnerId() == unit.getOwnerId()) {
                     unit.getRules().add(rule);
                 }
             }

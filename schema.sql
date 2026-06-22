@@ -17,7 +17,9 @@ CREATE TABLE units (
     name            VARCHAR(64)     NOT NULL,
     owner_id        INT             NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Один владелец не может завести две единицы с одинаковым кодом
+    CONSTRAINT units_code_owner_unique UNIQUE (code, owner_id)
 );
 
 -- ===== Таблица правил конверсии =====

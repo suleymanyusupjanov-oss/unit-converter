@@ -29,6 +29,13 @@ public class UnitCollectionManager {
         UnitValidator.validateCode(code);
         UnitValidator.validateName(name);
 
+        // запрет дубликата кода у одного владельца (на уровне БД — UNIQUE(code, owner_id))
+        for (Unit existing : unitCollection) {
+            if (existing.getOwnerId() == ownerId && existing.getCode().equals(code)) {
+                throw new IllegalArgumentException("У вас уже есть единица с кодом '" + code + "'");
+            }
+        }
+
         // создаём объект, id/created_at/updated_at проставит БД
         Unit unit = new Unit();
         unit.setCode(code);
@@ -99,6 +106,14 @@ public class UnitCollectionManager {
 
         UnitValidator.validateCode(code);
         UnitValidator.validateName(name);
+
+        // запрет дубликата кода у того же владельца (кроме самой этой единицы)
+        for (Unit existing : unitCollection) {
+            if (existing.getId() != id && existing.getOwnerId() == unit.getOwnerId()
+                    && existing.getCode().equals(code)) {
+                throw new IllegalArgumentException("У вас уже есть единица с кодом '" + code + "'");
+            }
+        }
 
         unit.setCode(code);
         unit.setName(name);

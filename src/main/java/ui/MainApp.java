@@ -65,11 +65,14 @@ public class MainApp extends Application {
         unitManager.loadFromDb();
         ruleManager.loadFromDb();
 
-        // Связываем правила с их юнитами по fromUnitCode (для master-detail UI)
+        // Связываем правила с их юнитами по коду И владельцу (для master-detail UI).
+        // Owner-проверка важна: иначе правила одного пользователя подмешались бы
+        // к одноимённой единице другого пользователя.
         for (var unit : unitManager.getUnits()) {
             unit.getRules().clear();
             for (var rule : ruleManager.getRules()) {
-                if (rule.getFromUnitCode().equals(unit.getCode())) {
+                if (rule.getFromUnitCode().equals(unit.getCode())
+                        && rule.getOwnerId() == unit.getOwnerId()) {
                     unit.getRules().add(rule);
                 }
             }
